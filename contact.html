@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - Zivah Shipping Logistics</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="contact-page">
+
+  <!-- Header & Navigation -->
+  <header>
+    <div class="container navbar">
+      <a href="index.html" class="logo" style="display: flex; align-items: center; gap: 10px;">
+        <img src="assets/images/logo.png" alt="Zivah Shipping Logistics" class="logo-img">
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li class="dropdown">
+          <a href="services.html" class="dropdown-toggle">Services</a>
+          <ul class="dropdown-menu">
+            <li><a href="services.html#ocean-freight">Ocean Freight</a></li>
+            <li><a href="services.html#air-freight">Air Freight</a></li>
+            <li><a href="services.html#road-freight">Road Freight</a></li>
+            <li><a href="services.html#intermodal-multimodal">Intermodal / Multimodal</a></li>
+            <li><a href="services.html#vessel-chartering">Vessel Chartering</a></li>
+            <li><a href="services.html#project-cargo">Project Cargo Handling</a></li>
+            <li><a href="services.html#break-bulk">Break Bulk Services</a></li>
+            <li><a href="services.html#rail-freight">Rail Freight</a></li>
+            <li><a href="services.html#express-courier">Express / Courier Services</a></li>
+            <li><a href="services.html#special-equipment">Special Equipment</a></li>
+            <li><a href="services.html#door-to-door">Door-to-Door Delivery</a></li>
+            <li><a href="services.html#customs-clearance">Customs Clearance</a></li>
+          </ul>
+        </li>
+        <li><a href="network.html">Network</a></li>
+        <li><a href="careers.html">Careers</a></li>
+        <li><a href="contact.html" class="active">Contact</a></li>
+        <li><a href="tracking.html" class="nav-btn">Track Shipment</a></li>      </ul>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle Navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Sub-Hero Section -->
+    <section class="hero" style="min-height: 45vh; padding: 140px 0 60px 0; position: relative; overflow: hidden;">
+    <!-- Background Slides for Dissolve Effect -->
+    <div class="hero-slide active" style="background-image: url('assets/images/hero_bg_1.jpg');"></div>
+    <div class="hero-slide" style="background-image: url('assets/images/hero_bg_2.jpg');"></div>
+    <div class="hero-slide" style="background-image: url('assets/images/img_2.jpg');"></div>
+    <div class="hero-slide" style="background-image: url('assets/images/FSC-4064-ship-freight.jpg');"></div>
+    <div class="hero-overlay"></div>
+    <div class="container">
+      <div class="hero-text" style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <h1><span>Contact Us</span></h1>
+        <p>Get in touch with our operations staff, request bulk freight quotes, or resolve billing inquiries.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Office Info & Contact Form Grid -->
+  <section class="section-bg-white">
+    <div class="container" style="max-width: 800px; margin: 0 auto;">
+        <!-- Contact Form -->
+        <div class="form-card" style="padding: 40px; margin: 0;">
+          <h3 style="color: var(--primary-color); margin-bottom: 24px; font-size: 22px;">Submit Online Query</h3>
+          
+          <form id="contactForm">
+            <div class="form-grid" style="grid-template-columns: 1fr;">
+              <div class="form-grid" style="margin-bottom: 0;">
+                <div class="form-group">
+                  <label for="cntName">Your Name *</label>
+                  <input type="text" id="cntName" required placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                  <label for="cntEmail">Email Address *</label>
+                  <input type="email" id="cntEmail" required placeholder="Enter email address">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="cntSubject">Subject Matter</label>
+                <input type="text" id="cntSubject" placeholder="e.g. Booking quotation adjustment">
+              </div>
+              <div class="form-group">
+                <label for="cntMessage">Message Body *</label>
+                <textarea id="cntMessage" required placeholder="Describe your shipping requirements in detail..."></textarea>
+              </div>
+            </div>
+            <div style="margin-top: 20px;">
+              <button type="submit" class="btn btn-primary" style="padding: 12px 30px; font-size: 15px; width: 100%;">Transmit Message</button>
+            </div>
+          </form>
+          
+          <div id="contactResult" style="display: none; text-align: center; padding: 20px; border-radius: 8px; background-color: rgba(46, 196, 182, 0.1); border: 2px solid var(--success-color); color: var(--primary-color);">
+            <h3>Message Sent Successfully!</h3>
+            <p style="margin-top: 5px;">Our support division will follow up via email shortly.</p>
+            <div style="background-color: var(--bg-white); border-radius: 8px; padding: 15px; border: 1px solid rgba(11,37,69,0.1); margin: 15px auto; max-width: 500px; text-align: left;">
+              <h4 style="color: var(--primary-color); margin-bottom: 6px;">📧 Forward to Support</h4>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Click below to dispatch your message query directly to <strong>zivahshippinglogistics2026@gmail.com</strong>.</p>
+              <a id="contactEmailBtn" href="#" class="btn btn-primary" style="display: inline-block; font-size: 13.5px; padding: 8px 16px; background-color: var(--primary-light); color: #fff;">
+                ✉️ Email Query to Support
+              </a>
+            </div>
+            <button onclick="window.location.reload()" class="btn btn-primary" style="margin-top: 15px; padding: 8px 20px; font-size: 13px;">Send Another Message</button>
+          </div>
+        </div>
+    </div>
+  </section>
+
+    <!-- Footer -->
+  <footer>
+    <div class="container footer-grid">
+      <div class="footer-col">
+        <img src="assets/images/logo.png" alt="Zivah Shipping Logistics" style="height: 105px; width: auto; margin-bottom: 15px; display: block;">
+        <p>A full-spectrum global logistics and supply chain provider. Replicated with dynamic portals, tracking updates, and direct email bookings integration.</p>
+        <p>Email: <a href="mailto:zivahshippinglogistics2026@gmail.com" style="color: var(--accent-color); font-weight: 600;">zivahshippinglogistics2026@gmail.com</a></p>
+      </div>
+      <div class="footer-col">
+        <h3>Quick Navigation</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="services.html">Logistics Services</a></li>
+          <li><a href="network.html">Global Network</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="contact.html">Contact Support</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Tracking Portal</h3>
+        <p>Check consignment logs instantly without logging in.</p>
+        <a href="tracking.html" class="btn btn-primary" style="display: block; width: 100%; font-size: 14px; padding: 10px 0;">Go to Tracking Page</a>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Zivah Shipping Logistics. All rights reserved. Created in matching format, responsive and integrated. (POWERED BY PHOENIX TECHNOLOGIES)</p>
+    </div>
+  </footer>
+
+  <script>
+    // Navigation Toggles
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+    
+    hamburgerBtn.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      hamburgerBtn.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-links a:not(.dropdown-toggle)').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+        hamburgerBtn.classList.remove('active');
+      });
+    });
+
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+          e.preventDefault();
+          const parent = toggle.parentElement;
+          parent.classList.toggle('active');
+        }
+      });
+    });
+
+    // Form submission sync to localStorage zsl_contacts
+    const contactForm = document.getElementById('contactForm');
+    const contactResult = document.getElementById('contactResult');
+
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const newContact = {
+        id: 'CNT-' + Date.now(),
+        name: document.getElementById('cntName').value,
+        email: document.getElementById('cntEmail').value,
+        subject: document.getElementById('cntSubject').value || 'No Subject',
+        message: document.getElementById('cntMessage').value,
+        createdAt: new Date().toISOString()
+      };
+
+      // Retrieve and append to localStorage
+      const contacts = JSON.parse(localStorage.getItem('zsl_contacts') || '[]');
+      contacts.push(newContact);
+      localStorage.setItem('zsl_contacts', JSON.stringify(contacts));
+
+      // Asynchronously submit to FormSubmit.co for live form delivery
+      fetch("https://formsubmit.co/ajax/zivahshippinglogistics2026@gmail.com", {
+        method: "POST",
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            name: newContact.name,
+            email: newContact.email,
+            subject: newContact.subject,
+            message: newContact.message
+        })
+      })
+      .then(response => response.json())
+      .then(data => console.log("FormSubmit response:", data))
+      .catch(error => console.error("FormSubmit error:", error));
+
+      // Setup mailto links for support desk
+      const mailtoSubject = encodeURIComponent(`✉️ Support Inquiry: ${newContact.subject}`);
+      const mailtoBody = encodeURIComponent(
+        `ZIVAH SHIPPING LOGISTICS - CONTACT FORM INQUIRY\n` +
+        `-----------------------------------------\n` +
+        `SENDER DETAILS\n` +
+        `- Sender Name: ${newContact.name}\n` +
+        `- Email Address: ${newContact.email}\n` +
+        `- Subject: ${newContact.subject}\n\n` +
+        `INQUIRY MESSAGE BODY\n` +
+        `${newContact.message}\n` +
+        `-----------------------------------------\n` +
+        `Submitted successfully to Contact Support division.`
+      );
+      document.getElementById('contactEmailBtn').href = `mailto:zivahshippinglogistics2026@gmail.com?subject=${mailtoSubject}&body=${mailtoBody}`;
+
+      contactForm.style.display = 'none';
+      contactResult.style.display = 'block';
+    });
+  </script>
+
+  <script>
+    // Hero slideshow dissolve transition
+    document.addEventListener("DOMContentLoaded", function() {
+      const slides = document.querySelectorAll('.hero-slide');
+      if (slides.length > 0) {
+        let current = 0;
+        setInterval(function() {
+          slides[current].classList.remove('active');
+          current = (current + 1) % slides.length;
+          slides[current].classList.add('active');
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

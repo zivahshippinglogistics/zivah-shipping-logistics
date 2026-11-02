@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Logistics Dashboard - Zivah Shipping Logistics</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(12, 35, 64, 0.6);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      border-top: 5px solid var(--success-color);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .form-grid-three {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .form-grid-three {
+        grid-template-columns: 1fr;
+      }
+    }
+    .modal-qr-container {
+      flex: 0 0 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-left: 1px solid rgba(12, 35, 64, 0.1);
+      padding-left: 24px;
+    }
+    @media (max-width: 576px) {
+      .modal-qr-container {
+        border-left: none !important;
+        padding-left: 0 !important;
+        border-top: 1px solid rgba(12, 35, 64, 0.1);
+        padding-top: 20px;
+        margin-top: 10px;
+        flex: 1 1 100% !important;
+      }
+    }
+    .btn-glass-yellow {
+      padding: 8px 20px;
+      font-size: 13.5px;
+      background: rgba(243, 167, 18, 0.15) !important;
+      border: 1.5px solid rgba(243, 167, 18, 0.4) !important;
+      color: #e69500 !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      font-weight: 700 !important;
+      box-shadow: 0 4px 15px rgba(243, 167, 18, 0.1) !important;
+      transition: all 0.3s ease !important;
+      border-radius: 20px !important;
+    }
+    .btn-glass-yellow:hover {
+      background: rgba(243, 167, 18, 0.3) !important;
+      border-color: rgba(243, 167, 18, 0.7) !important;
+      color: #000000 !important;
+      box-shadow: 0 6px 20px rgba(243, 167, 18, 0.25) !important;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="admin-page">
+
+  <!-- Header -->
+  <header>
+    <div class="container navbar">
+      <a href="index.html" class="logo" style="display: flex; align-items: center; gap: 10px;">
+        <img src="assets/images/logo.png" alt="Zivah Shipping Logistics" class="logo-img">
+        <span style="font-size: 14px; font-weight: 500; background: var(--accent-color); color: #000000 !important; padding: 2px 8px; border-radius: 4px; margin-left: 5px;">Admin</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">View Site</a></li>
+        <li><a href="tracking.html">Tracking Portal</a></li>
+        <li><button onclick="signOutAdmin()" style="background: var(--danger-color); color: #fff; padding: 8px 16px; border: none; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 13.5px; transition: var(--transition);">Sign Out</button></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Admin Dashboard Section -->
+  <main style="padding-top: 120px; min-height: 90vh; padding-bottom: 60px;">
+    <div class="container">
+      <div class="section-header" style="text-align: left; margin-bottom: 40px;">
+        <h2>System Administration Control Panel</h2>
+        <p>Operational control center split into 3 core partitions to manage incoming bookings, CV applications, and message logs.</p>
+      </div>
+
+      <!-- Tab Selectors for 3 Partitions -->
+      <div class="dashboard-nav">
+        <button class="dashboard-tab active" data-target="partition-bookings">📦 Cargo Bookings (Partition 1)</button>
+        <button class="dashboard-tab" data-target="partition-career">💼 Careers & CVs (Partition 2)</button>
+        <button class="dashboard-tab" data-target="partition-contact">✉️ Contact Messages (Partition 3)</button>
+      </div>
+
+      <!-- Partition 1: Cargo Bookings -->
+      <div id="partition-bookings" class="dashboard-partition active">
+        
+        <!-- Add Shipment Form Card -->
+        <div class="form-card" style="padding: 24px; margin-bottom: 32px; border-left: 5px solid var(--accent-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: var(--primary-color); margin: 0; display: flex; align-items: center; gap: 10px;">📦 Register New Consignment (Data Entry)</h3>
+            <button id="toggleAddFormBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="toggleAddForm()">Hide Form</button>
+          </div>
+          
+          <form id="addConsignmentForm" style="display: block;">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="addFullName">Client Name *</label>
+                <input type="text" id="addFullName" required placeholder="e.g. John Doe">
+              </div>
+              <div class="form-group">
+                <label for="addEmail">Client Email Address *</label>
+                <input type="email" id="addEmail" required placeholder="e.g. client@example.com">
+              </div>
+              <div class="form-group">
+                <label for="addPhone">Client Phone Number</label>
+                <input type="text" id="addPhone" placeholder="e.g. +1 (555) 019-2834">
+              </div>
+              <div class="form-group">
+                <label for="addCargoType">Package Details / Cargo Description *</label>
+                <input type="text" id="addCargoType" required placeholder="e.g. Industrial Electronics & Server Racks">
+              </div>
+              <div class="form-group">
+                <label for="addWeight">Weight (kg)</label>
+                <input type="number" id="addWeight" placeholder="e.g. 2450">
+              </div>
+              <div class="form-group">
+                <label for="addDimensions">Dimensions (L x W x H)</label>
+                <input type="text" id="addDimensions" placeholder="e.g. 2.4 x 1.8 x 2.2 m">
+              </div>
+              <div class="form-group">
+                <label for="addPickupAddress">Origin (Pickup Point) *</label>
+                <input type="text" id="addPickupAddress" required placeholder="e.g. Warehouse A, Austin, TX, USA">
+              </div>
+              <div class="form-group">
+                <label for="addDeliveryAddress">Destination (Delivery Point) *</label>
+                <input type="text" id="addDeliveryAddress" required placeholder="e.g. Logistics Hub, Rotterdam Port, Netherlands">
+              </div>
+              <div class="form-group">
+                <label for="addPickupDate">Pickup Date *</label>
+                <input type="date" id="addPickupDate" required>
+              </div>
+              <div class="form-group">
+                <label for="addStatusSelect">Initial Status *</label>
+                <select id="addStatusSelect" required>
+                  <option value="Order Received" selected>Order Received</option>
+                  <option value="Order Placed">Order Placed</option>
+                  <option value="In Transit">In Transit</option>
+                  <option value="Customs Clearance">Customs Clearance</option>
+                  <option value="Out for Delivery">Out for Delivery</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label for="addLocation">Initial Location *</label>
+                <input type="text" id="addLocation" required placeholder="e.g. Origin Warehouse (Austin, TX)" value="Origin Warehouse">
+              </div>
+            </div>
+            <div style="margin-top: 24px; display: flex; gap: 16px;">
+              <button type="submit" class="btn btn-primary" style="padding: 12px 30px; font-size: 14px;">Create Shipment Registry</button>
+              <button type="reset" class="btn btn-secondary" style="padding: 12px 24px; font-size: 14px;">Reset Fields</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="form-card" style="padding: 24px; margin-bottom: 32px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <h3 style="color: var(--primary-color);">Manage Consignments</h3>
+            <button onclick="clearBookings()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; color: var(--danger-color); border-color: var(--danger-color);">Reset Registry</button>
+          </div>
+          
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tracking ID</th>
+                  <th>Customer</th>
+                  <th>Cargo Category</th>
+                  <th>Route (From ➔ To)</th>
+                  <th>Pickup Date</th>
+                  <th>Status & Location</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookingsTableBody">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Status Update Drawer (opens when admin clicks action) -->
+          <div id="statusUpdateDrawer" style="display: none;" class="status-update-box" style="margin-top: 24px; border-top: 2px dashed rgba(12,35,64,0.2); padding-top: 20px;">
+            <h4 style="color: var(--primary-color); margin-bottom: 16px; font-weight: 700;">✏️ Edit/Update Consignment for <span id="updateTrackingId" style="color: var(--primary-light);"></span></h4>
+            <form id="statusUpdateForm" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
+              <div class="form-group" style="flex: 1; min-width: 180px;">
+                <label for="newStatusSelect">Change Status *</label>
+                <select id="newStatusSelect" required>
+                  <option value="Order Received">Order Received</option>
+                  <option value="Order Placed">Order Placed</option>
+                  <option value="In Transit">In Transit</option>
+                  <option value="Customs Clearance">Customs Clearance</option>
+                  <option value="Out for Delivery">Out for Delivery</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1; min-width: 180px;">
+                <label for="newLocationInput">Current Location *</label>
+                <input type="text" id="newLocationInput" required placeholder="e.g. Customs Hub, New York, USA">
+              </div>
+              <div class="form-group" style="flex: 2; min-width: 280px;">
+                <label for="statusComment">Log Commentary (Optional)</label>
+                <input type="text" id="statusComment" placeholder="e.g. Package cleared customs, forwarding to regional depot.">
+              </div>
+              <div style="display: flex; gap: 10px; padding-bottom: 4px;">
+                <button type="submit" class="btn btn-primary" style="padding: 12px 24px;">Save Updates</button>
+                <button type="button" class="btn btn-secondary" onclick="closeUpdateDrawer()" style="padding: 12px 16px; color: var(--danger-color); border-color: var(--danger-color);">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partition 2: Careers & CV Submissions -->
+      <div id="partition-career" class="dashboard-partition">
+        <div class="form-card" style="padding: 24px;">
+          <h3 style="color: var(--primary-color); margin-bottom: 16px;">Careers & CV Recruiting Registry</h3>
+          
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date Submitted</th>
+                  <th>Candidate Name</th>
+                  <th>Email & Phone</th>
+                  <th>Position</th>
+                  <th>Resume / CV File</th>
+                  <th>Cover Letter</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="careersTableBody">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partition 3: Contact Messages -->
+      <div id="partition-contact" class="dashboard-partition">
+        <div class="form-card" style="padding: 24px;">
+          <h3 style="color: var(--primary-color); margin-bottom: 16px;">Contact Inquiries Log</h3>
+          
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date Received</th>
+                  <th>Sender</th>
+                  <th>Email</th>
+                  <th>Subject Matter</th>
+                  <th>Message Body</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="contactsTableBody">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Zivah Shipping Logistics. Admin Control Panel. (POWERED BY PHOENIX TECHNOLOGIES)</p>
+    </div>
+  </footer>
+
+  <script>
+    // --- AUTHORIZATION SECURITY ---
+    if (sessionStorage.getItem('zsl_admin_logged_in') !== 'true') {
+      window.location.replace('admin.html');
+    }
+
+    function signOutAdmin() {
+      sessionStorage.removeItem('zsl_admin_logged_in');
+      window.location.replace('admin.html');
+    }
+
+    // --- LOCALSTORAGE UTILITIES ---
+    function getBookings() {
+      const b = localStorage.getItem('zsl_bookings');
+      if (!b) {
+        const defaultBooking = {
+          trackingId: 'ZSL-K8J39A2B',
+          createdAt: '2026-06-15T08:00:00.000Z',
+          fullName: 'Phoenix Technologies Ltd.',
+          email: 'logistics@phoenixtech.com',
+          phone: '+1 (555) 019-2834',
+          cargoType: 'Industrial Electronics & Server Racks',
+          weight: 2450,
+          dimensions: '2.4 x 1.8 x 2.2 m',
+          pickupAddress: 'Warehouse A, 45 Tech Pioneer Way, Austin, TX, USA',
+          deliveryAddress: 'Logistics Hub, Rotterdam Port, Netherlands',
+          pickupDate: '2026-06-16',
+          status: 'In Transit',
+          currentLocation: 'Houston Port Terminal, USA',
+          statusHistory: [
+            {
+              status: 'Order Placed',
+              timestamp: '2026-06-15T08:00:00.000Z',
+              comment: 'Booking request received and freight space allocated.'
+            },
+            {
+              status: 'In Transit',
+              timestamp: '2026-06-16T14:00:00.000Z',
+              comment: 'Cargo picked up from Austin warehouse and secured at Houston terminal.'
+            },
+            {
+              status: 'In Transit',
+              timestamp: '2026-06-17T10:30:00.000Z',
+              comment: 'Loaded onto vessel ZSL HAMBURG (Voyage ZS409). Departed Houston Port.'
+            }
+          ]
+        };
+        const arr = [defaultBooking];
+        localStorage.setItem('zsl_bookings', JSON.stringify(arr));
+        return arr;
+      }
+      return JSON.parse(b);
+    }
+    function saveBookings(arr) { localStorage.setItem('zsl_bookings', JSON.stringify(arr)); }
+    function getCareers() { return JSON.parse(localStorage.getItem('zsl_careers') || '[]'); }
+    function getContacts() { return JSON.parse(localStorage.getItem('zsl_contacts') || '[]'); }
+
+    function clearBookings() {
+      if (confirm('Are you sure you want to restore the registry to default mock bookings? This deletes all custom test entries.')) {
+        localStorage.removeItem('zsl_bookings');
+        localStorage.removeItem('zsl_careers');
+        localStorage.removeItem('zsl_contacts');
+        window.location.reload();
+      }
+    }
+
+    // --- TAB Toggles ---
+    document.querySelectorAll('.dashboard-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.dashboard-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.dashboard-partition').forEach(p => p.classList.remove('active'));
+        
+        tab.classList.add('active');
+        const target = tab.getAttribute('data-target');
+        document.getElementById(target).classList.add('active');
+      });
+    });
+
+    // --- LOAD AND POPULATE ---
+    function loadDashboardRegistries() {
+      // 1. Cargo Bookings (Partition 1)
+      const bookings = getBookings();
+      const bookingsBody = document.getElementById('bookingsTableBody');
+      bookingsBody.innerHTML = '';
+      
+      if (bookings.length === 0) {
+        bookingsBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No booking requests found in system registry.</td></tr>';
+      } else {
+        const sortedBookings = [...bookings].reverse();
+        sortedBookings.forEach(booking => {
+          const tr = document.createElement('tr');
+          
+          let badgeClass = 'badge-info';
+          if (booking.status === 'In Transit' || booking.status === 'Out for Delivery' || booking.status === 'Customs Clearance') badgeClass = 'badge-warning';
+          else if (booking.status === 'Delivered') badgeClass = 'badge-success';
+          else if (booking.status === 'Cancelled') badgeClass = 'badge-danger';
+          
+          const originUrl = window.location.href.split('dashboard.html')[0];
+          const trackingPageUrl = originUrl + 'tracking.html?trackingId=' + encodeURIComponent(booking.trackingId);
+          const mobileTrackingUrl = originUrl + 'mobile-tracking.html?trackingId=' + encodeURIComponent(booking.trackingId);
+          const mailtoSubject = encodeURIComponent(`📦 Consignment Status Update: ${booking.trackingId}`);
+          const mailtoBody = encodeURIComponent(
+            `Dear ${booking.fullName},\n\n` +
+            `We would like to update you on your consignment status with Zivah Shipping Logistics.\n\n` +
+            `Tracking Information:\n` +
+            `-----------------------------------------\n` +
+            `- Tracking ID: ${booking.trackingId}\n` +
+            `- Current Status: ${booking.status}\n` +
+            `- Current Location: ${booking.currentLocation || 'Origin Warehouse'}\n` +
+            `-----------------------------------------\n\n` +
+            `Route Details:\n` +
+            `- Origin: ${booking.pickupAddress}\n` +
+            `- Destination: ${booking.deliveryAddress}\n` +
+            `- Package Details: ${booking.cargoType}\n\n` +
+            `You can track your consignment in real-time on our mobile-friendly page:\n` +
+            `${trackingPageUrl}\n\n` +
+            `Thank you for choosing Zivah Shipping Logistics.\n\n` +
+            `Best regards,\n` +
+            `Zivah Shipping Logistics Operations Team\n` +
+            `zivahshippinglogistics2026@gmail.com`
+          );
+
+          tr.innerHTML = `
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <strong>${booking.trackingId}</strong>
+                <a href="${mobileTrackingUrl}" target="_blank" title="Scan / Track Shipment on Mobile" style="display: inline-flex; align-items: center; justify-content: center; padding: 2px; border: 1px solid rgba(12, 35, 64, 0.2); border-radius: 4px; background: #fff; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=40x40&data=${encodeURIComponent(mobileTrackingUrl)}&color=0c2340&bgcolor=ffffff" alt="QR Code" style="width: 20px; height: 20px; display: block;">
+                </a>
+              </div>
+            </td>
+            <td>
+              <div style="font-weight:600;">${booking.fullName}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${booking.email}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${booking.phone}</div>
+            </td>
+            <td>${booking.cargoType}</td>
+            <td>
+              <div style="font-size:12px; font-weight:500;"><strong>Pickup:</strong> ${booking.pickupAddress}</div>
+              <div style="font-size:12px; font-weight:500;"><strong>Deliv:</strong> ${booking.deliveryAddress}</div>
+            </td>
+            <td>${booking.pickupDate}</td>
+            <td>
+              <span class="badge ${badgeClass}">${booking.status}</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px; font-weight: 500;">📍 ${booking.currentLocation || 'Origin Warehouse'}</div>
+            </td>
+            <td>
+              <button class="btn btn-primary" style="padding: 6px 12px; font-size:12px;" onclick="openStatusUpdate('${booking.trackingId}', '${booking.status}')">Edit/Update</button>
+              <a href="mailto:${booking.email}?subject=${mailtoSubject}&body=${mailtoBody}" class="btn btn-secondary" style="padding: 6px 12px; font-size:12px; margin-top:4px; display:inline-block; border-color:var(--primary-light); color:#f3f2ed !important;">✉️ Email Client</a>
+            </td>
+          `;
+          bookingsBody.appendChild(tr);
+        });
+      }
+
+      // 2. Career applications (Partition 2)
+      const careers = getCareers();
+      const careersBody = document.getElementById('careersTableBody');
+      careersBody.innerHTML = '';
+      
+      if (careers.length === 0) {
+        careersBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No candidate CV submissions found in registry.</td></tr>';
+      } else {
+        const sortedCareers = [...careers].reverse();
+        sortedCareers.forEach(candidate => {
+          const dateStr = new Date(candidate.createdAt).toLocaleDateString();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${dateStr}</td>
+            <td><strong>${candidate.name}</strong></td>
+            <td>
+              <div>${candidate.email}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${candidate.phone}</div>
+            </td>
+            <td><span class="badge badge-info">${candidate.position}</span></td>
+            <td>
+              <div style="font-weight:600; color:var(--primary-light); font-size:13px;">
+                📄 ${candidate.resumeName}
+              </div>
+              <span style="font-size:11px; color:var(--text-muted);">Stored locally in sandbox</span>
+            </td>
+            <td><div style="max-height:80px; overflow-y:auto; font-size:12px; max-width:240px;">${candidate.coverLetter || 'N/A'}</div></td>
+            <td>
+              <a href="mailto:zivahshippinglogistics2026@gmail.com?subject=Candidate%20CV%20Forward:%20${encodeURIComponent(candidate.name)}&body=Logistics%20Applicant:%20${encodeURIComponent(candidate.name)}%0APosition:%20${encodeURIComponent(candidate.position)}%0APhone:%20${encodeURIComponent(candidate.phone)}%0AEmail:%20${encodeURIComponent(candidate.email)}%0A%0ACover%20Letter:%0A${encodeURIComponent(candidate.coverLetter)}" class="btn btn-primary" style="padding: 6px 12px; font-size:12px; display:inline-block;">✉️ Forward Email</a>
+            </td>
+          `;
+          careersBody.appendChild(tr);
+        });
+      }
+
+      // 3. Contact Inquiries (Partition 3)
+      const contacts = getContacts();
+      const contactsBody = document.getElementById('contactsTableBody');
+      contactsBody.innerHTML = '';
+      
+      if (contacts.length === 0) {
+        contactsBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No custom support messages found in registry.</td></tr>';
+      } else {
+        const sortedContacts = [...contacts].reverse();
+        sortedContacts.forEach(msg => {
+          const dateStr = new Date(msg.createdAt).toLocaleDateString();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${dateStr}</td>
+            <td><strong>${msg.name}</strong></td>
+            <td>${msg.email}</td>
+            <td><strong>${msg.subject}</strong></td>
+            <td><div style="max-height:80px; overflow-y:auto; font-size:12px; max-width:350px;">${msg.message}</div></td>
+            <td>
+              <a href="mailto:zivahshippinglogistics2026@gmail.com?subject=Forwarded%20Support%20Inquiry%20-%20${encodeURIComponent(msg.subject)}&body=Inquiry%20from%20${encodeURIComponent(msg.name)}%20(${encodeURIComponent(msg.email)}):%0A%0A${encodeURIComponent(msg.message)}" class="btn btn-primary" style="padding: 6px 12px; font-size:12px; display:inline-block;">✉️ Forward Email</a>
+            </td>
+          `;
+          contactsBody.appendChild(tr);
+        });
+      }
+    }
+
+    // --- STATUS UPDATES LOGIC ---
+    const statusUpdateDrawer = document.getElementById('statusUpdateDrawer');
+    const updateTrackingId = document.getElementById('updateTrackingId');
+    const newStatusSelect = document.getElementById('newStatusSelect');
+    const statusComment = document.getElementById('statusComment');
+
+    function openStatusUpdate(trackingId, currentStatus) {
+      const bookings = getBookings();
+      const booking = bookings.find(b => b.trackingId === trackingId);
+      
+      updateTrackingId.innerText = trackingId;
+      newStatusSelect.value = currentStatus;
+      
+      if (booking) {
+        document.getElementById('newLocationInput').value = booking.currentLocation || booking.pickupAddress;
+      } else {
+        document.getElementById('newLocationInput').value = '';
+      }
+      
+      statusComment.value = '';
+      statusUpdateDrawer.style.display = 'block';
+      statusUpdateDrawer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeUpdateDrawer() {
+      document.getElementById('statusUpdateDrawer').style.display = 'none';
+    }
+
+    const statusUpdateForm = document.getElementById('statusUpdateForm');
+    statusUpdateForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const trackingId = updateTrackingId.innerText;
+      const status = newStatusSelect.value;
+      const currentLocation = document.getElementById('newLocationInput').value.trim();
+      const comment = statusComment.value.trim() || `Consignment status updated to ${status} at ${currentLocation}`;
+
+      const bookings = getBookings();
+      const idx = bookings.findIndex(b => b.trackingId === trackingId);
+      
+      if (idx !== -1) {
+        bookings[idx].status = status;
+        bookings[idx].currentLocation = currentLocation;
+        bookings[idx].statusHistory.push({
+          status: status,
+          timestamp: new Date().toISOString(),
+          comment: `${comment} (Location: ${currentLocation})`
+        });
+        
+        saveBookings(bookings);
+        statusUpdateDrawer.style.display = 'none';
+        
+        // Trigger automated client email notification & show success modal
+        triggerClientNotification(bookings[idx], true);
+        showSuccessModal(bookings[idx], true);
+      } else {
+        alert('Booking tracking record not found in data vault.');
+      }
+    });
+
+    // --- ADD CONSIGNMENT FORM CONTROLS ---
+    function toggleAddForm() {
+      const form = document.getElementById('addConsignmentForm');
+      const btn = document.getElementById('toggleAddFormBtn');
+      if (form.style.display === 'none') {
+        form.style.display = 'block';
+        btn.innerText = 'Hide Form';
+      } else {
+        form.style.display = 'none';
+        btn.innerText = 'Show Form';
+      }
+    }
+
+    function generateNewTrackingId() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const bookings = getBookings();
+      let isUnique = false;
+      let trackingId = '';
+      
+      while (!isUnique) {
+        let code = '';
+        for (let i = 0; i < 5; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        trackingId = 'ZIVAH-' + code;
+        isUnique = !bookings.some(b => b.trackingId === trackingId);
+      }
+      return trackingId;
+    }
+
+    function triggerClientNotification(booking, isUpdate = false) {
+      const emailStatusEl = document.getElementById('modalEmailStatus');
+      emailStatusEl.innerText = 'Queuing background notification email...';
+      emailStatusEl.style.color = 'var(--text-muted)';
+
+      const originUrl = window.location.href.split('dashboard.html')[0];
+      const trackingPageUrl = originUrl + 'tracking.html?trackingId=' + encodeURIComponent(booking.trackingId);
+      
+      const subjectText = isUpdate 
+        ? `📦 Consignment Tracking Update: ${booking.trackingId}` 
+        : `📦 ZSL Shipping Confirmation - tracking ID: ${booking.trackingId}`;
+        
+      const messageText = isUpdate
+        ? `We want to update you on your shipment status with Zivah Shipping Logistics. Your consignment status has been updated.`
+        : `We are pleased to inform you that your shipment has been successfully registered with Zivah Shipping Logistics. Your consignment is being processed.`;
+
+      // Attempt automated background send via FormSubmit.co
+      fetch(`https://formsubmit.co/ajax/${booking.email}`, {
+        method: "POST",
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            "_subject": subjectText,
+            "Greeting": `Dear ${booking.fullName},`,
+            "Message": messageText,
+            "Tracking ID": booking.trackingId,
+            "Origin": booking.pickupAddress,
+            "Destination": booking.deliveryAddress,
+            "Details": `${booking.cargoType} (${booking.weight} kg)`,
+            "Current Status": booking.status,
+            "Current Location": booking.currentLocation || 'Origin Warehouse',
+            "_replyto": "zivahshippinglogistics2026@gmail.com",
+            "Track URL": trackingPageUrl,
+            "_honey": ""
+        })
+      })
+      .then(response => {
+        if (response.ok) {
+          emailStatusEl.innerText = '✓ Notification email successfully sent via FormSubmit.co API.';
+          emailStatusEl.style.color = 'var(--success-color)';
+        } else {
+          emailStatusEl.innerText = '✓ Email notification triggers configured (first send requires FormSubmit confirmation link click).';
+          emailStatusEl.style.color = '#f3a712';
+        }
+      })
+      .catch(error => {
+        console.error("Email notification dispatch error:", error);
+        emailStatusEl.innerText = '⚠ Background email fail-safe: Please use the Manual Backup button below to send.';
+        emailStatusEl.style.color = 'var(--danger-color)';
+      });
+
+      // Prepare mailto backup link
+      const mailtoSubject = encodeURIComponent(subjectText);
+      const mailtoBody = encodeURIComponent(
+        `Dear ${booking.fullName},\n\n` +
+        `${messageText}\n\n` +
+        `Here are your consignment tracking details:\n` +
+        `-----------------------------------------\n` +
+        `- Tracking ID: ${booking.trackingId}\n` +
+        `- Cargo Details: ${booking.cargoType} (${booking.weight} kg)\n` +
+        `- Origin: ${booking.pickupAddress}\n` +
+        `- Destination: ${booking.deliveryAddress}\n` +
+        `- Current Status: ${booking.status}\n` +
+        `- Current Location: ${booking.currentLocation || 'Origin Warehouse'}\n` +
+        `-----------------------------------------\n\n` +
+        `You can track your consignment in real-time on our mobile-friendly page:\n` +
+        `${trackingPageUrl}\n\n` +
+        `Thank you for choosing Zivah Shipping Logistics.\n\n` +
+        `Best regards,\n` +
+        `Zivah Shipping Logistics Operations Team\n` +
+        `zivahshippinglogistics2026@gmail.com`
+      );
+      
+      const mailtoBtn = document.getElementById('modalMailtoBtn');
+      mailtoBtn.href = `mailto:${booking.email}?subject=${mailtoSubject}&body=${mailtoBody}`;
+    }
+
+    function showSuccessModal(booking, isUpdate = false) {
+      const modalTitle = document.querySelector('#successModal h3');
+      const modalDesc = document.querySelector('#successModal p');
+      
+      if (isUpdate) {
+        modalTitle.innerHTML = '✏️ Consignment Updated Successfully';
+        modalTitle.style.color = 'var(--primary-light)';
+        modalDesc.innerText = 'The consignment details and tracking status/location have been successfully updated in the database.';
+      } else {
+        modalTitle.innerHTML = '✅ Consignment Registered Successfully';
+        modalTitle.style.color = 'var(--success-color)';
+        modalDesc.innerText = 'A new shipping profile has been added to the database. The consignment details and tracking information are ready.';
+      }
+      
+      document.getElementById('modalTrackingId').innerText = booking.trackingId;
+      document.getElementById('modalClientName').innerText = booking.fullName;
+      document.getElementById('modalClientEmail').innerText = booking.email;
+      document.getElementById('modalRoute').innerText = `${booking.pickupAddress} ➔ ${booking.deliveryAddress}`;
+      
+      // Dynamic QR Code generation for mobile tracking link
+      const originUrl = window.location.href.split('dashboard.html')[0];
+      const mobileTrackingUrl = originUrl + 'mobile-tracking.html?trackingId=' + encodeURIComponent(booking.trackingId);
+      const qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(mobileTrackingUrl) + '&color=0c2340&bgcolor=ffffff';
+      document.getElementById('modalQrCode').src = qrCodeUrl;
+      
+      document.getElementById('successModal').style.display = 'flex';
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('successModal').style.display = 'none';
+      loadDashboardRegistries();
+    }
+
+    // Add Shipment Form Event Handler
+    const addConsignmentForm = document.getElementById('addConsignmentForm');
+    if (addConsignmentForm) {
+      addConsignmentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const fullName = document.getElementById('addFullName').value.trim();
+        const email = document.getElementById('addEmail').value.trim();
+        const phone = document.getElementById('addPhone').value.trim() || 'N/A';
+        const cargoType = document.getElementById('addCargoType').value.trim();
+        const weight = document.getElementById('addWeight').value.trim() ? parseFloat(document.getElementById('addWeight').value) : 'N/A';
+        const dimensions = document.getElementById('addDimensions').value.trim() || 'N/A';
+        const pickupAddress = document.getElementById('addPickupAddress').value.trim();
+        const deliveryAddress = document.getElementById('addDeliveryAddress').value.trim();
+        const pickupDate = document.getElementById('addPickupDate').value;
+        const status = document.getElementById('addStatusSelect').value;
+        const currentLocation = document.getElementById('addLocation').value.trim() || 'Origin Warehouse';
+
+        // 1. Auto-generate Tracking ID
+        const trackingId = generateNewTrackingId();
+
+        const newBooking = {
+          trackingId: trackingId,
+          createdAt: new Date().toISOString(),
+          fullName: fullName,
+          email: email,
+          phone: phone,
+          cargoType: cargoType,
+          weight: weight,
+          dimensions: dimensions,
+          pickupAddress: pickupAddress,
+          deliveryAddress: deliveryAddress,
+          pickupDate: pickupDate,
+          status: status,
+          currentLocation: currentLocation,
+          statusHistory: [
+            {
+              status: status,
+              timestamp: new Date().toISOString(),
+              comment: `Shipment registered at ${currentLocation}. Initial status: ${status}`
+            }
+          ]
+        };
+
+        // 2. Save to localStorage
+        const bookings = getBookings();
+        bookings.push(newBooking);
+        saveBookings(bookings);
+
+        // 3. Trigger client notification email via FormSubmit
+        triggerClientNotification(newBooking);
+
+        // 4. Show success modal
+        showSuccessModal(newBooking);
+
+        // 5. Reset form & Reload list
+        addConsignmentForm.reset();
+        document.getElementById('addLocation').value = 'Origin Warehouse';
+      });
+    }
+
+    // Set today's date in pickup date input as default
+    const addPickupDateInput = document.getElementById('addPickupDate');
+    if (addPickupDateInput) {
+      addPickupDateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Auto-load registries
+    window.addEventListener('DOMContentLoaded', loadDashboardRegistries);
+  </script>
+  
+  <!-- Notification success overlay modal -->
+  <div id="successModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card form-card" style="max-width: 650px; width: 95%; padding: 32px; position: relative;">
+      <h3 style="color: var(--success-color); margin-bottom: 12px; font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+        ✅ Consignment Registered Successfully
+      </h3>
+      <p style="color: var(--text-dark); margin-bottom: 20px; font-size: 14.5px;">
+        A new shipping profile has been added to the database. The consignment details and tracking information are ready.
+      </p>
+      
+      <!-- Split Layout Container -->
+      <div style="display: flex; gap: 24px; align-items: stretch; flex-wrap: wrap; margin-bottom: 24px;">
+        <!-- Left Side: Consignment Details & Notifications -->
+        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="background: rgba(12, 35, 64, 0.05); border: 1px solid rgba(12, 35, 64, 0.1); border-radius: 8px; padding: 18px; margin-bottom: 18px;">
+            <p style="margin-bottom: 8px; color: var(--primary-color) !important;"><strong>Tracking ID:</strong> <span id="modalTrackingId" style="font-family: monospace; font-size: 15px; font-weight: 700; color: var(--primary-light) !important; background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(12, 35, 64, 0.2);"></span></p>
+            <p style="margin-bottom: 8px; color: #000000 !important;"><strong>Client Name:</strong> <span id="modalClientName" style="color: #000000 !important;"></span></p>
+            <p style="margin-bottom: 8px; color: #000000 !important;"><strong>Client Email:</strong> <span id="modalClientEmail" style="color: #000000 !important;"></span></p>
+            <p style="margin-bottom: 0; color: #000000 !important;"><strong>Route:</strong> <span id="modalRoute" style="color: #000000 !important;"></span></p>
+          </div>
+          <div style="border-top: 1px solid rgba(12, 35, 64, 0.1); padding-top: 16px;">
+            <h4 style="color: var(--primary-color); font-size: 14px; font-weight: bold; margin-bottom: 6px;">📧 Automated Client Notification</h4>
+            <p id="modalEmailStatus" style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px;">Sending background notification email...</p>
+            <a id="modalMailtoBtn" href="#" class="btn btn-primary" style="display: inline-block; padding: 8px 16px; font-size: 12.5px; text-decoration: none;">✉️ Send Client Email (Backup)</a>
+          </div>
+        </div>
+        
+        <!-- Right Side: QR Code Scanning Panel -->
+        <div class="modal-qr-container">
+          <h4 style="color: var(--primary-color); font-size: 12.5px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Mobile Scan Link</h4>
+          <div style="background: #fff; border: 1px solid rgba(12, 35, 64, 0.15); border-radius: 8px; padding: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: inline-block;">
+            <img id="modalQrCode" src="" alt="Consignment QR Code" style="width: 120px; height: 120px; display: block;">
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted); margin-top: 10px; font-weight: 500; line-height: 1.3;">Scan with camera to track on mobile</span>
+        </div>
+      </div>
+      
+      <div style="text-align: right; border-top: 1px solid rgba(12, 35, 64, 0.1); padding-top: 20px;">
+        <button onclick="closeSuccessModal()" class="btn-glass-yellow">Close & Refresh Registry</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+
+

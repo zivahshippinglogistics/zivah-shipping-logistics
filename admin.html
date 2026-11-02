@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Zivah Shipping Logistics</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="admin-page">
+
+  <!-- Header -->
+  <header>
+    <div class="container navbar">
+      <a href="index.html" class="logo" style="display: flex; align-items: center; gap: 10px;">
+        <img src="assets/images/logo.png" alt="Zivah Shipping Logistics" class="logo-img">
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Back to Home</a></li>
+        <li><a href="tracking.html">Tracking Portal</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Login Area -->
+  <main style="padding-top: 140px; min-height: 85vh; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="max-width: 450px; width: 100%;">
+      <div class="form-card" style="padding: 40px; border-top: 5px solid var(--accent-color);">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: var(--primary-color); font-size: 24px; font-weight: 800;">Admin Control Login</h2>
+          <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 6px;">Enter system administrator credentials to access cargo registries.</p>
+        </div>
+
+        <form id="loginForm">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="adminUsername">Username</label>
+            <input type="text" id="adminUsername" required placeholder="Enter username">
+          </div>
+          <div class="form-group" style="margin-bottom: 24px;">
+            <label for="adminPassword">Password</label>
+            <input type="password" id="adminPassword" required placeholder="Enter password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px 0; font-size: 15px;">Unlock Dashboard</button>
+        </form>
+
+        <div id="loginError" style="display: none; margin-top: 16px; text-align: center; color: var(--danger-color); font-size: 14px; font-weight: 600; padding: 10px; background-color: rgba(230, 57, 70, 0.05); border-radius: 6px; border: 1px solid var(--danger-color);">
+          Invalid username or password.
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Zivah Shipping Logistics. Admin Access. (POWERED BY PHOENIX TECHNOLOGIES)</p>
+    </div>
+  </footer>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const user = document.getElementById('adminUsername').value.trim();
+      const pass = document.getElementById('adminPassword').value;
+
+      // Validate credentials (admin / adminzsl)
+      if (user === 'admin' && pass === 'adminzsl') {
+        sessionStorage.setItem('zsl_admin_logged_in', 'true');
+        loginError.style.display = 'none';
+        window.location.href = 'dashboard.html';
+      } else {
+        loginError.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+

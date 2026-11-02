@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Update Portal - Zivah Shipping Logistics</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <!-- Barcode Generation Library -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container navbar">
+      <a href="index.html" class="logo" style="display: flex; align-items: center; gap: 10px;">
+        <img src="assets/images/logo.png" alt="Zivah Shipping Logistics" class="logo-img">
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li class="dropdown">
+          <a href="services.html" class="dropdown-toggle">Services</a>
+          <ul class="dropdown-menu">
+            <li><a href="services.html#ocean-freight">Ocean Freight</a></li>
+            <li><a href="services.html#air-freight">Air Freight</a></li>
+            <li><a href="services.html#road-freight">Road Freight</a></li>
+            <li><a href="services.html#intermodal-multimodal">Intermodal / Multimodal</a></li>
+            <li><a href="services.html#vessel-chartering">Vessel Chartering</a></li>
+            <li><a href="services.html#project-cargo">Project Cargo Handling</a></li>
+            <li><a href="services.html#break-bulk">Break Bulk Services</a></li>
+            <li><a href="services.html#rail-freight">Rail Freight</a></li>
+            <li><a href="services.html#express-courier">Express / Courier Services</a></li>
+            <li><a href="services.html#special-equipment">Special Equipment</a></li>
+            <li><a href="services.html#door-to-door">Door-to-Door Delivery</a></li>
+            <li><a href="services.html#customs-clearance">Customs Clearance</a></li>
+          </ul>
+        </li>
+        <li><a href="network.html">Network</a></li>
+        <li><a href="careers.html">Careers</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="tracking.html" class="nav-btn active">Track Shipment</a></li>      </ul>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle Navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+    <!-- Sub-Hero Section -->
+  <section class="hero" style="min-height: 45vh; padding: 140px 0 60px 0; position: relative; overflow: hidden;">
+    <!-- Background Slides for Dissolve Effect -->
+    <div class="hero-slide active" style="background-image: url('assets/images/hero_bg_1.jpg');"></div>
+    <div class="hero-slide" style="background-image: url('assets/images/hero_bg_2.jpg');"></div>
+    <div class="hero-slide" style="background-image: url('assets/images/img_2.jpg');"></div>
+    <div class="hero-slide" style="background-image: url('assets/images/FSC-4064-ship-freight.jpg');"></div>
+    <div class="hero-overlay"></div>
+    <div class="container">
+      <div class="hero-text" style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <h1 style="color: #f3f2ed !important;">Client <span style="color: #f3f2ed !important;">Update Portal</span></h1>
+        <p>Retrieve cargo tracking milestones, delivery updates, and routing information instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Client Update Track Section -->
+  <main style="padding-top: 60px; min-height: 50vh;">
+    <section>
+      <div class="container">
+        
+
+        <!-- Tracking Form -->
+        <div class="form-card tracking-search-card">
+          <form id="trackingForm">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label for="trackingIdInput">Enter Consignment Tracking ID *</label>
+              <div class="track-input-group">
+                <input type="text" id="trackingIdInput" placeholder="e.g. ZSL-K8J39A2B" required>
+                <button type="submit" class="btn btn-primary">Retrieve Status</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Error Card -->
+        <div id="trackingError" class="form-card" style="display: none; max-width: 600px; margin: 0 auto; text-align: center; border: 2px solid var(--danger-color); background-color: rgba(230, 57, 70, 0.05);">
+          <h3 style="color: var(--danger-color);">Tracking Code Error</h3>
+          <p id="errorText" style="margin-top: 10px; color: var(--text-dark);"></p>
+        </div>
+
+        <!-- Tracking Details Results (rendered dynamically) -->
+        <div id="trackingResults" class="form-card" style="display: none; max-width: 800px; margin: 0 auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef4f8; padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3 style="color: var(--primary-color); font-size: 22px;">Consignment: <span id="resTrackingId" style="color: var(--primary-light);"></span></h3>
+              <p style="font-size: 13px; color: var(--text-muted);">Booked on: <span id="resCreatedAt"></span></p>
+            </div>
+            <div>
+              <span id="resStatusBadge" class="badge badge-info" style="font-size: 14px; padding: 6px 16px;">Order Placed</span>
+            </div>
+          </div>
+
+          <!-- Shipment Info Summary -->
+          <div class="shipment-details-grid">
+            <div>
+              <h4 style="color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Shipper / Customer</h4>
+              <p id="resFullName" style="font-weight: 700; color: var(--primary-color); margin-top: 4px;"></p>
+            </div>
+            <div>
+              <h4 style="color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Cargo Details</h4>
+              <p id="resCargoDetails" style="font-weight: 700; color: var(--primary-color); margin-top: 4px;"></p>
+            </div>
+            <div>
+              <h4 style="color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Pickup Point</h4>
+              <p id="resPickup" style="font-weight: 700; color: var(--primary-color); margin-top: 4px;"></p>
+            </div>
+            <div>
+              <h4 style="color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Destination</h4>
+              <p id="resDelivery" style="font-weight: 700; color: var(--primary-color); margin-top: 4px;"></p>
+            </div>
+            <div>
+              <h4 style="color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Current Location</h4>
+              <p id="resCurrentLocation" style="font-weight: 700; color: var(--primary-color); margin-top: 4px;"></p>
+            </div>
+          </div>
+
+          <!-- View More Details Toggle Button -->
+          <div style="text-align: center; margin-top: 24px; margin-bottom: 8px;">
+            <button type="button" id="viewMoreDetailsBtn" class="btn btn-secondary" style="font-size: 14px; padding: 8px 20px; border-color: var(--accent-color); color: #fff; background: transparent; transition: var(--transition);">
+              View More Details ▼
+            </button>
+          </div>
+
+          <!-- Additional Terminal Links Panel -->
+          <div id="moreDetailsPanel" style="display: none; margin-top: 16px; padding: 20px; border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.02); margin-bottom: 24px;">
+            <h4 style="color: #fff !important; font-size: 15px; margin-bottom: 8px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.5px;">Port Terminal Container & B/L Tracking</h4>
+            <p style="color: rgba(255,255,255,0.7) !important; font-size: 13px; text-align: center; margin-bottom: 16px;">Track container status and Bill of Lading (B/L) information directly on terminal systems:</p>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
+              <a href="https://lfs.qict.com.pk/" target="_blank" class="terminal-link-card">
+                🚢 QICT Terminal
+              </a>
+              <a href="https://www.kictl.com/Enquiries?is=ContainerBLEnquiry" target="_blank" class="terminal-link-card">
+                🚢 KICT Terminal
+              </a>
+              <a href="https://www.sapt.com.pk/enquiries?is=ContainerBLEnquiry" target="_blank" class="terminal-link-card">
+                🚢 SAPT Terminal
+              </a>
+              <a href="https://pict.com.pk/" target="_blank" class="terminal-link-card">
+                🚢 PICT Terminal
+              </a>
+            </div>
+          </div>
+
+          <!-- Dynamic Barcode Render -->
+          <div style="text-align: center; margin-top: 24px; padding-bottom: 12px; border-bottom: 1px dashed #dcdde1;">
+            <svg id="trackingBarcode" style="background:#fff; border-radius:4px; padding:10px; border:1px solid rgba(11,37,69,0.1); max-width:100%; height:auto;"></svg>
+          </div>
+
+          <!-- Status History Timeline -->
+          <h3 style="color: var(--primary-color); margin-top: 40px; border-bottom: 2.5px solid var(--primary-color); padding-bottom: 8px;">Shipment Transit Milestones</h3>
+          <div class="status-timeline" id="resTimeline">
+            <!-- Items injected dynamically -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+    <!-- Footer -->
+  <footer>
+    <div class="container footer-grid">
+      <div class="footer-col">
+        <img src="assets/images/logo.png" alt="Zivah Shipping Logistics" style="height: 105px; width: auto; margin-bottom: 15px; display: block;">
+        <p>A full-spectrum global logistics and supply chain provider. Replicated with dynamic portals, tracking updates, and direct email bookings integration.</p>
+        <p>Email: <a href="mailto:zivahshippinglogistics2026@gmail.com" style="color: var(--accent-color); font-weight: 600;">zivahshippinglogistics2026@gmail.com</a></p>
+      </div>
+      <div class="footer-col">
+        <h3>Quick Navigation</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="services.html">Logistics Services</a></li>
+          <li><a href="network.html">Global Network</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="contact.html">Contact Support</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Tracking Portal</h3>
+        <p>Check consignment logs instantly without logging in.</p>
+        <a href="tracking.html" class="btn btn-primary" style="display: block; width: 100%; font-size: 14px; padding: 10px 0;">Go to Tracking Page</a>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 Zivah Shipping Logistics. All rights reserved. Created in matching format, responsive and integrated. (POWERED BY PHOENIX TECHNOLOGIES)</p>
+    </div>
+  </footer>
+
+  <script>
+    const trackingForm = document.getElementById('trackingForm');
+    const trackingIdInput = document.getElementById('trackingIdInput');
+    const trackingError = document.getElementById('trackingError');
+    const errorText = document.getElementById('errorText');
+    const trackingResults = document.getElementById('trackingResults');
+    const viewMoreDetailsBtn = document.getElementById('viewMoreDetailsBtn');
+    const moreDetailsPanel = document.getElementById('moreDetailsPanel');
+
+    const resTrackingId = document.getElementById('resTrackingId');
+    const resCreatedAt = document.getElementById('resCreatedAt');
+    const resStatusBadge = document.getElementById('resStatusBadge');
+    const resFullName = document.getElementById('resFullName');
+    const resCargoDetails = document.getElementById('resCargoDetails');
+    const resPickup = document.getElementById('resPickup');
+    const resDelivery = document.getElementById('resDelivery');
+    const resTimeline = document.getElementById('resTimeline');
+
+    // Seed default booking if registry is empty
+    function seedDefaultBooking() {
+      const bookings = JSON.parse(localStorage.getItem('zsl_bookings') || '[]');
+      const hasDefault = bookings.some(b => b.trackingId.toUpperCase() === 'ZSL-K8J39A2B');
+      if (!hasDefault) {
+        const defaultBooking = {
+          trackingId: 'ZSL-K8J39A2B',
+          createdAt: '2026-06-15T08:00:00.000Z',
+          fullName: 'Phoenix Technologies Ltd.',
+          email: 'logistics@phoenixtech.com',
+          phone: '+1 (555) 019-2834',
+          cargoType: 'Industrial Electronics & Server Racks',
+          weight: 2450,
+          dimensions: '2.4 x 1.8 x 2.2 m',
+          pickupAddress: 'Warehouse A, 45 Tech Pioneer Way, Austin, TX, USA',
+          deliveryAddress: 'Logistics Hub, Rotterdam Port, Netherlands',
+          pickupDate: '2026-06-16',
+          status: 'In Transit',
+          statusHistory: [
+            {
+              status: 'Order Placed',
+              timestamp: '2026-06-15T08:00:00.000Z',
+              comment: 'Booking request received and freight space allocated.'
+            },
+            {
+              status: 'In Transit',
+              timestamp: '2026-06-16T14:00:00.000Z',
+              comment: 'Cargo picked up from Austin warehouse and secured at Houston terminal.'
+            },
+            {
+              status: 'In Transit',
+              timestamp: '2026-06-17T10:30:00.000Z',
+              comment: 'Loaded onto vessel ZSL HAMBURG (Voyage ZS409). Departed Houston Port.'
+            }
+          ]
+        };
+        bookings.push(defaultBooking);
+        localStorage.setItem('zsl_bookings', JSON.stringify(bookings));
+      }
+    }
+    seedDefaultBooking();
+
+    // Retrieve tracking details from localStorage
+    function getBookingFromLocal(id) {
+      const bookings = JSON.parse(localStorage.getItem('zsl_bookings') || '[]');
+      return bookings.find(b => b.trackingId.toUpperCase().trim() === id.toUpperCase().trim());
+    }
+
+    function searchTracking(id) {
+      if (!id) return;
+      
+      const booking = getBookingFromLocal(id);
+      
+      if (booking) {
+        trackingError.style.display = 'none';
+        
+        // Reset View More Details state
+        moreDetailsPanel.style.display = 'none';
+        viewMoreDetailsBtn.innerHTML = 'View More Details ▼';
+        viewMoreDetailsBtn.style.backgroundColor = 'transparent';
+        viewMoreDetailsBtn.style.color = '#fff';
+        
+        // Populate fields
+        resTrackingId.innerText = booking.trackingId;
+        resCreatedAt.innerText = new Date(booking.createdAt).toLocaleString();
+        resFullName.innerText = booking.fullName;
+        resCargoDetails.innerText = `${booking.cargoType} (${booking.weight} kg) - Dim: ${booking.dimensions}`;
+        resPickup.innerText = booking.pickupAddress;
+        resDelivery.innerText = booking.deliveryAddress;
+        
+        const resCurrentLocation = document.getElementById('resCurrentLocation');
+        if (resCurrentLocation) {
+          resCurrentLocation.innerText = booking.currentLocation || 'Origin Warehouse';
+        }
+        
+        // Badge colors
+        resStatusBadge.innerText = booking.status;
+        resStatusBadge.className = 'badge';
+        if (booking.status === 'Order Placed' || booking.status === 'Order Received') resStatusBadge.classList.add('badge-info');
+        else if (booking.status === 'In Transit' || booking.status === 'Out for Delivery' || booking.status === 'Customs Clearance') resStatusBadge.classList.add('badge-warning');
+        else if (booking.status === 'Delivered') resStatusBadge.classList.add('badge-success');
+        else if (booking.status === 'Cancelled') resStatusBadge.classList.add('badge-danger');
+        else resStatusBadge.classList.add('badge-danger');
+        
+        // Timeline building
+        resTimeline.innerHTML = '';
+        
+        // Generate Barcode Vector Graphic
+        try {
+          JsBarcode("#trackingBarcode", booking.trackingId, {
+            format: "CODE128",
+            width: 2,
+            height: 50,
+            displayValue: true,
+            lineColor: "#0b2545",
+            fontSize: 14,
+            textMargin: 4
+          });
+        } catch (e) {
+          console.error('Barcode drawing failure:', e);
+        }
+
+        // Show history from latest (top) to oldest (bottom)
+        const sortedHistory = [...booking.statusHistory].reverse();
+        
+        sortedHistory.forEach((item, index) => {
+          const dateStr = new Date(item.timestamp).toLocaleString();
+          const isActive = index === 0; // Latest event is marked active/green
+          
+          const timelineItem = document.createElement('div');
+          timelineItem.className = `timeline-item ${isActive ? 'active' : ''}`;
+          timelineItem.innerHTML = `
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <span class="timeline-time">${dateStr}</span>
+              <h4 class="timeline-status">${item.status}</h4>
+              <p class="timeline-comment">${item.comment}</p>
+            </div>
+          `;
+          resTimeline.appendChild(timelineItem);
+        });
+        
+        // Update desktop hero QR code image to point to the scanned ID on mobile PWA
+        var heroQrImg = document.querySelector('.hero-qr-card img');
+        if (heroQrImg) {
+          var origin = window.location.origin;
+          var path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+          if (path === '/' || path === '') path = '';
+          if (origin.startsWith('file:') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            origin = 'https://zivahshippinglogistics.com';
+            path = '';
+          }
+          var targetUrl = origin + path + '/mobile-tracking.html?trackingId=' + encodeURIComponent(booking.trackingId);
+          heroQrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(targetUrl) + '&color=0c2340&bgcolor=ffffff';
+        }
+        
+        trackingResults.style.display = 'block';
+      } else {
+        trackingResults.style.display = 'none';
+        errorText.innerText = `Tracking ID "${id}" was not found. Please verify spelling (e.g. ZSL-K8J39A2B).`;
+        
+        // Reset desktop hero QR code image to general mobile PWA
+        var heroQrImg = document.querySelector('.hero-qr-card img');
+        if (heroQrImg) {
+          var origin = window.location.origin;
+          var path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+          if (path === '/' || path === '') path = '';
+          if (origin.startsWith('file:') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            origin = 'https://zivahshippinglogistics.com';
+            path = '';
+          }
+          var targetUrl = origin + path + '/mobile-tracking.html';
+          heroQrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(targetUrl) + '&color=0c2340&bgcolor=ffffff';
+        }
+        
+        trackingError.style.display = 'block';
+      }
+    }
+
+    // Submit handler
+    trackingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const code = trackingIdInput.value.trim();
+      searchTracking(code);
+    });
+
+    // Toggle details panel handler
+    viewMoreDetailsBtn.addEventListener('click', () => {
+      if (moreDetailsPanel.style.display === 'none') {
+        moreDetailsPanel.style.display = 'block';
+        viewMoreDetailsBtn.innerHTML = 'Hide Details ▲';
+        viewMoreDetailsBtn.style.backgroundColor = 'var(--accent-color)';
+        viewMoreDetailsBtn.style.color = 'var(--primary-color)';
+      } else {
+        moreDetailsPanel.style.display = 'none';
+        viewMoreDetailsBtn.innerHTML = 'View More Details ▼';
+        viewMoreDetailsBtn.style.backgroundColor = 'transparent';
+        viewMoreDetailsBtn.style.color = '#fff';
+      }
+    });
+
+    // Navigation Toggles
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+    
+    hamburgerBtn.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      hamburgerBtn.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-links a:not(.dropdown-toggle)').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+        hamburgerBtn.classList.remove('active');
+      });
+    });
+
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+          e.preventDefault();
+          const parent = toggle.parentElement;
+          parent.classList.toggle('active');
+        }
+      });
+    });
+
+    // Read parameter from URL (for redirects) and initialize dynamic QR
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlTrackingId = params.get('trackingId');
+      if (urlTrackingId) {
+        trackingIdInput.value = urlTrackingId;
+        searchTracking(urlTrackingId);
+      } else {
+        // Set general mobile tracking page URL on desktop floating QR card on load
+        var heroQrImg = document.querySelector('.hero-qr-card img');
+        if (heroQrImg) {
+          var origin = window.location.origin;
+          var path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+          if (path === '/' || path === '') path = '';
+          if (origin.startsWith('file:') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            origin = 'https://zivahshippinglogistics.com';
+            path = '';
+          }
+          var targetUrl = origin + path + '/mobile-tracking.html';
+          heroQrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(targetUrl) + '&color=0c2340&bgcolor=ffffff';
+        }
+      }
+    });
+  </script>
+  <script>
+    // Hero slideshow dissolve transition
+    document.addEventListener("DOMContentLoaded", function() {
+      const slides = document.querySelectorAll('.hero-slide');
+      if (slides.length > 0) {
+        let current = 0;
+        setInterval(function() {
+          slides[current].classList.remove('active');
+          current = (current + 1) % slides.length;
+          slides[current].classList.add('active');
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

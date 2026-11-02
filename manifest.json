@@ -1,0 +1,29 @@
+{
+  "name": "Zivah Shipment Tracking",
+  "short_name": "Zivah Track",
+  "description": "Mobile Shipment Tracking App for Zivah Shipping Logistics",
+  "start_url": "./mobile-tracking.html",
+  "display": "standalone",
+  "background_color": "#0c2340",
+  "theme_color": "#0c2340",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/images/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

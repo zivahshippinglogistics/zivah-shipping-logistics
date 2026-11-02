@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Zivah Cargo Track</title>
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Mobile PWA Styling & Web App Meta Tags -->
+  <meta name="theme-color" content="#0c2340">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Zivah Track">
+  <link rel="apple-touch-icon" href="assets/images/logo.svg">
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
+  
+  <!-- Premium Font & Icon Styling -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/assets/css/all.min.css">
+  
+  <!-- Barcode Generation Library -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  
+  <style>
+    :root {
+      --bg-dark: #08121e;
+      --bg-panel: #0f1d2f;
+      --bg-card: #15263d;
+      --primary-color: #0c2340;
+      --accent-color: #f3a712;
+      --accent-glow: rgba(243, 167, 18, 0.2);
+      --text-white: #ffffff;
+      --text-gray: #a3b1c6;
+      --text-muted: #627289;
+      --success-teal: #2ec4b6;
+      --success-glow: rgba(46, 196, 182, 0.2);
+      --danger-red: #e63946;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-area-top: env(safe-area-inset-top, 0px);
+    }
+
+    /* Core Mobile View Lock */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-white);
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding-top: var(--safe-area-top);
+      padding-bottom: var(--safe-area-bottom);
+    }
+
+    /* Glassmorphic Header */
+    header {
+      background: rgba(15, 29, 47, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      z-index: 100;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .header-title {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, var(--text-white) 30%, var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .conn-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(46, 196, 182, 0.1);
+      color: var(--success-teal);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(46, 196, 182, 0.2);
+      transition: var(--transition-smooth);
+    }
+
+    .conn-status.offline {
+      background: rgba(230, 57, 70, 0.1);
+      color: var(--danger-red);
+      border: 1px solid rgba(230, 57, 70, 0.2);
+    }
+
+    .conn-status span {
+      width: 6px;
+      height: 6px;
+      background: var(--success-teal);
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 8px var(--success-teal);
+    }
+
+    .conn-status.offline span {
+      background: var(--danger-red);
+      box-shadow: 0 0 8px var(--danger-red);
+    }
+
+    /* Screen Views Manager */
+    .view-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(30px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .app-screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    /* Home Search View Components */
+    .welcome-text {
+      margin-top: 10px;
+      margin-bottom: 24px;
+    }
+
+    .welcome-text h2 {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #ffffff, #d5e3f2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .welcome-text p {
+      color: var(--text-gray);
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .search-card {
+      background: var(--bg-panel);
+      border-radius: 20px;
+      padding: 24px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      margin-bottom: 24px;
+    }
+
+    .search-label {
+      font-size: 13px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--accent-color);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .input-wrapper input {
+      flex: 1;
+      height: 56px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 0 18px;
+      color: var(--text-white);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: var(--transition-smooth);
+    }
+
+    .input-wrapper input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 15px var(--accent-glow);
+      background: rgba(21, 38, 61, 0.8);
+    }
+
+    .scan-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--accent-color);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+    }
+
+    .scan-btn:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .track-btn {
+      width: 100%;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent-color), #f78c1e);
+      border: none;
+      color: var(--primary-color);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(243, 167, 18, 0.3);
+      transition: var(--transition-smooth);
+    }
+
+    .track-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 10px rgba(243, 167, 18, 0.2);
+    }
+
+    /* Recent Searches */
+    .recents-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .recents-clear {
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .recents-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .recent-item-card {
+      background: var(--bg-panel);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .recent-item-card:active {
+      transform: scale(0.98);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .recent-info h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text-white);
+    }
+
+    .recent-info p {
+      font-size: 12px;
+      color: var(--text-gray);
+    }
+
+    .recent-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    /* Details Timeline Screen */
+    .details-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: var(--transition-smooth);
+    }
+
+    .back-btn:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .details-title-box h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-white);
+    }
+
+    .details-title-box p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .shipment-card {
+      background: var(--bg-panel);
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .shipment-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed var(--border-color);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .shipment-summary-id h4 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent-color);
+    }
+
+    .shipment-summary-id p {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-top: 2px;
+    }
+
+    .status-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    .badge-info { background: rgba(0, 180, 216, 0.15); color: #00b4d8; border: 1px solid rgba(0, 180, 216, 0.3); }
+    .badge-warning { background: rgba(243, 167, 18, 0.15); color: var(--accent-color); border: 1px solid rgba(243, 167, 18, 0.3); }
+    .badge-success { background: rgba(46, 196, 182, 0.15); color: var(--success-teal); border: 1px solid rgba(46, 196, 182, 0.3); }
+    .badge-danger { background: rgba(230, 57, 70, 0.15); color: var(--danger-red); border: 1px solid rgba(230, 57, 70, 0.3); }
+
+    /* Route Visual Step */
+    .route-visualizer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      padding: 10px 0;
+      margin-bottom: 16px;
+    }
+
+    .route-visualizer::after {
+      content: '';
+      position: absolute;
+      left: 30px;
+      right: 30px;
+      top: 25px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      z-index: 1;
+    }
+
+    .route-progress {
+      position: absolute;
+      left: 30px;
+      top: 25px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-color), var(--success-teal));
+      z-index: 2;
+      width: 0%;
+      transition: width 0.8s ease-in-out;
+    }
+
+    .route-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 3;
+      width: 60px;
+      text-align: center;
+    }
+
+    .route-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--text-gray);
+      transition: var(--transition-smooth);
+    }
+
+    .route-node.active .route-icon {
+      border-color: var(--accent-color);
+      background: var(--accent-color);
+      color: var(--primary-color);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .route-node.complete .route-icon {
+      border-color: var(--success-teal);
+      background: var(--success-teal);
+      color: var(--primary-color);
+    }
+
+    .route-label {
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 8px;
+      color: var(--text-gray);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 80px;
+    }
+
+    .route-node.active .route-label {
+      color: var(--accent-color);
+    }
+
+    /* Shipment specifications */
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: var(--bg-card);
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .details-item h5 {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .details-item p {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-white);
+    }
+
+    /* Timeline Stepper */
+    .timeline-container {
+      margin-bottom: 20px;
+    }
+
+    .timeline-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-white);
+      border-left: 3px solid var(--accent-color);
+      padding-left: 10px;
+    }
+
+    .mobile-timeline {
+      position: relative;
+      padding-left: 24px;
+    }
+
+    .mobile-timeline::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .timeline-step {
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .timeline-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-dot {
+      position: absolute;
+      left: -24px;
+      top: 4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+      z-index: 10;
+      transition: var(--transition-smooth);
+    }
+
+    .timeline-step.active .step-dot {
+      background: var(--accent-color);
+      border-color: var(--bg-dark);
+      box-shadow: 0 0 0 4px rgba(243, 167, 18, 0.2), 0 0 10px var(--accent-color);
+    }
+
+    .timeline-step.completed .step-dot {
+      background: var(--success-teal);
+      border-color: var(--bg-dark);
+      box-shadow: 0 0 0 4px rgba(46, 196, 182, 0.15);
+    }
+
+    .step-content {
+      background: var(--bg-panel);
+      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--border-color);
+      transition: var(--transition-smooth);
+    }
+
+    .timeline-step.active .step-content {
+      border-color: rgba(243, 167, 18, 0.3);
+      box-shadow: 0 4px 15px rgba(243, 167, 18, 0.05);
+    }
+
+    .step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .step-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-white);
+    }
+
+    .timeline-step.active .step-title {
+      color: var(--accent-color);
+    }
+
+    .timeline-step.completed .step-title {
+      color: var(--success-teal);
+    }
+
+    .step-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .step-comment {
+      font-size: 12.5px;
+      color: var(--text-gray);
+      line-height: 1.5;
+    }
+
+    /* Barcode Panel */
+    .barcode-panel {
+      background: var(--bg-panel);
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .barcode-panel svg {
+      background: #ffffff;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Info / Support View */
+    .info-header {
+      margin-bottom: 24px;
+    }
+
+    .info-header h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-white);
+      margin-bottom: 6px;
+    }
+
+    .support-card {
+      background: var(--bg-panel);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .support-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(243, 167, 18, 0.1);
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .support-info h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-white);
+    }
+
+    .support-info p {
+      font-size: 12.5px;
+      color: var(--text-gray);
+      margin-top: 2px;
+    }
+
+    .support-card a {
+      margin-left: auto;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .support-card a:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Tab Bottom Navigation Bar */
+    .bottom-nav {
+      background: rgba(15, 29, 47, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      height: 64px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: relative;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: var(--transition-smooth);
+      padding: 6px 12px;
+      gap: 4px;
+    }
+
+    .nav-item i {
+      font-size: 18px;
+      transition: var(--transition-smooth);
+    }
+
+    .nav-item.active {
+      color: var(--accent-color);
+    }
+
+    .nav-item.active i {
+      transform: translateY(-2px);
+      color: var(--accent-color);
+    }
+
+    /* Modal / Camera Overlay style */
+    .scanner-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 20px;
+    }
+
+    .scanner-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1010;
+    }
+
+    .scanner-close {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .scanner-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .scanner-video {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.7;
+    }
+
+    .scanner-frame {
+      width: 250px;
+      height: 250px;
+      border: 4px solid var(--accent-color);
+      border-radius: 24px;
+      position: relative;
+      box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7);
+      z-index: 1005;
+      overflow: hidden;
+    }
+
+    .scanner-laser {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--accent-color);
+      box-shadow: 0 0 12px var(--accent-color);
+      animation: laserScan 2s linear infinite;
+    }
+
+    @keyframes laserScan {
+      0% { top: 0%; }
+      50% { top: 100%; }
+      100% { top: 0%; }
+    }
+
+    .scanner-tip {
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      padding: 20px;
+      z-index: 1005;
+    }
+
+    /* App Installation Sheets */
+    .install-sheet {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: var(--bg-panel);
+      border-top: 1.5px solid var(--border-color);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: calc(24px + var(--safe-area-bottom));
+    }
+
+    .install-sheet.show {
+      transform: translateY(0);
+    }
+
+    .install-sheet-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .install-sheet-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: var(--primary-color);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .install-sheet-logo img {
+      width: 36px;
+      height: 36px;
+    }
+
+    .install-sheet-info h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .install-sheet-info p {
+      font-size: 12.5px;
+      color: var(--text-gray);
+      margin-top: 2px;
+    }
+
+    .install-sheet-body {
+      font-size: 13.5px;
+      color: var(--text-gray);
+      line-height: 1.5;
+    }
+
+    .install-sheet-steps {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .install-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .install-step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      color: var(--primary-color);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .install-sheet-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn-sheet-primary {
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-color), #f78c1e);
+      border: none;
+      color: var(--primary-color);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-sheet-secondary {
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: var(--border-color);
+    }
+
+    .empty-state h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-gray);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      max-width: 250px;
+      line-height: 1.4;
+    }
+
+    /* Notification toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: rgba(15, 29, 47, 0.95);
+      border: 1px solid var(--border-color);
+      padding: 12px 24px;
+      border-radius: 30px;
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 600;
+      z-index: 2000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast i {
+      color: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Glass Header -->
+  <header>
+    <div class="header-brand">
+      <img src="assets/images/logo.svg" alt="Zivah Logo" class="header-logo">
+      <h1 class="header-title">Zivah LogiTrack</h1>
+    </div>
+    <div id="connBadge" class="conn-status">
+      <span></span>Online
+    </div>
+  </header>
+
+  <!-- View Screens -->
+  <div class="view-container">
+
+    <!-- Screen 1: Track / Search Home -->
+    <div id="screen-track" class="app-screen active">
+      <div class="welcome-text">
+        <h2>Shipment Tracker</h2>
+        <p>Enter your cargo coordinates to locate transit status.</p>
+      </div>
+
+      <div class="search-card">
+        <label class="search-label">Cargo Consignment ID</label>
+        <div class="input-wrapper">
+          <input type="text" id="trackInput" placeholder="e.g. ZSL-K8J39A2B" autocomplete="off" spellcheck="false">
+          <button class="scan-btn" id="startScanBtn" title="Scan Barcode">
+            <i class="fa-solid fa-camera"></i>
+          </button>
+        </div>
+        <button class="track-btn" id="trackSubmitBtn">
+          <i class="fa-solid fa-magnifying-glass"></i> Track Shipment
+        </button>
+      </div>
+
+      <div class="recents-container" id="recentsContainer" style="display: none;">
+        <div class="recents-title">
+          <span>Recent Searches</span>
+          <span class="recents-clear" onclick="clearRecents()">Clear All</span>
+        </div>
+        <div class="recents-list" id="recentsList">
+          <!-- Recent searches generated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 2: Tracking Details Timeline -->
+    <div id="screen-details" class="app-screen">
+      <div class="details-header">
+        <button class="back-btn" id="detailsBackBtn">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="details-title-box">
+          <h3>Shipment Trace</h3>
+          <p>Real-time telemetry reports</p>
+        </div>
+      </div>
+
+      <!-- Shipment Details Card -->
+      <div class="shipment-card" id="detailsCard">
+        <div class="shipment-summary">
+          <div class="shipment-summary-id">
+            <h4 id="detTrackingId">ZSL-K8J39A2B</h4>
+            <p>Booked: <span id="detBookedDate">-</span></p>
+          </div>
+          <span class="status-badge badge-warning" id="detStatusBadge">In Transit</span>
+        </div>
+
+        <!-- Progress route bar -->
+        <div class="route-visualizer">
+          <div class="route-progress" id="detRouteProgress"></div>
+          <div class="route-node" id="node-placed">
+            <div class="route-icon"><i class="fa-solid fa-box"></i></div>
+            <div class="route-label">Booked</div>
+          </div>
+          <div class="route-node" id="node-transit">
+            <div class="route-icon"><i class="fa-solid fa-ship"></i></div>
+            <div class="route-label">In Transit</div>
+          </div>
+          <div class="route-node" id="node-delivery">
+            <div class="route-icon"><i class="fa-solid fa-truck"></i></div>
+            <div class="route-label">Out</div>
+          </div>
+          <div class="route-node" id="node-delivered">
+            <div class="route-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="route-label">Arrived</div>
+          </div>
+        </div>
+
+        <!-- Details Info Table -->
+        <div class="details-grid">
+          <div class="details-item">
+            <h5>Shipper / Consignee</h5>
+            <p id="detShipper">-</p>
+          </div>
+          <div class="details-item">
+            <h5>Cargo Type</h5>
+            <p id="detCargo">-</p>
+          </div>
+          <div class="details-item">
+            <h5>Weight / Size</h5>
+            <p id="detWeightDim">-</p>
+          </div>
+          <div class="details-item">
+            <h5>Destination</h5>
+            <p id="detDeliveryAddr">-</p>
+          </div>
+          <div class="details-item" style="grid-column: span 2;">
+            <h5>Current Location</h5>
+            <p id="detCurrentLocation">-</p>
+          </div>
+        </div>
+
+        <!-- Stepper Timeline -->
+        <div class="timeline-container">
+          <h4 class="timeline-title">Transit Logs</h4>
+          <div class="mobile-timeline" id="detTimeline">
+            <!-- Timeline details injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Barcode -->
+        <div class="barcode-panel">
+          <svg id="detBarcode"></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 3: Shipments / My List -->
+    <div id="screen-shipments" class="app-screen">
+      <div class="welcome-text">
+        <h2>My Saved Bookings</h2>
+        <p>Quick registry monitoring for active cargo bookings.</p>
+      </div>
+      
+      <div id="savedShipmentsList" class="recents-list">
+        <!-- Injected dynamically or shows empty state -->
+      </div>
+    </div>
+
+    <!-- Screen 4: Help / Info Support -->
+    <div id="screen-help" class="app-screen">
+      <div class="info-header">
+        <h2>Client Support Hub</h2>
+        <p>Instant channels for shipping operations support.</p>
+      </div>
+
+      <div class="support-card">
+        <div class="support-icon"><i class="fa-solid fa-envelope"></i></div>
+        <div class="support-info">
+          <h4>Logistics Desk</h4>
+          <p>logistics@zivahshipping.com</p>
+        </div>
+        <a href="mailto:zivahshippinglogistics2026@gmail.com?subject=Cargo%20Inquiry"><i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+
+      <div class="support-card">
+        <div class="support-icon"><i class="fa-solid fa-phone-volume"></i></div>
+        <div class="support-info">
+          <h4>24/7 Operations Line</h4>
+          <p>021 348 322 14</p>
+        </div>
+        <a href="tel:02134832214"><i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+      <div class="support-card" style="margin-top: auto; background: rgba(255,255,255,0.01); border-style: dashed;">
+        <div class="support-icon" style="background: rgba(46,196,182,0.05); color: var(--success-teal);"><i class="fa-solid fa-mobile-screen"></i></div>
+        <div class="support-info">
+          <h4>Zivah PWA Version</h4>
+          <p>v1.0.4 - Running Standalone</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 5: Admin Login Screen -->
+    <div id="screen-admin-login" class="app-screen">
+      <div class="details-header">
+        <button class="back-btn" onclick="backToSupportScreen()">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="details-title-box">
+          <h3>Admin Authentication</h3>
+          <p>Secure control gate</p>
+        </div>
+      </div>
+
+      <div class="search-card" style="margin-top: 20px;">
+        <div class="form-group" style="margin-bottom: 16px; width: 100%; text-align: left;">
+          <label class="search-label" style="margin-bottom: 8px; display: block; color: var(--accent-color);">Username</label>
+          <input type="text" id="adminUsername" placeholder="Enter admin username" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 14.5px;">
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 24px; width: 100%; text-align: left;">
+          <label class="search-label" style="margin-bottom: 8px; display: block; color: var(--accent-color);">Password</label>
+          <input type="password" id="adminPassword" placeholder="Enter admin password" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 14.5px;">
+        </div>
+
+        <button class="track-btn" onclick="submitMobileAdminLogin()" style="width: 100%;">
+          <i class="fa-solid fa-lock-open"></i> Authenticate Control
+        </button>
+      </div>
+    </div>
+
+    <!-- Screen 6: Mobile Admin Dashboard -->
+    <div id="screen-admin-dashboard" class="app-screen">
+      <div class="details-header" style="justify-content: space-between; display: flex; align-items: center; width: 100%;">
+        <div class="details-title-box">
+          <h3 style="color: var(--accent-color); font-weight: 800; font-size: 19px;">Admin Control</h3>
+          <p style="font-size: 11px;">Mobile Operations Console</p>
+        </div>
+        <button class="back-btn" onclick="signOutMobileAdmin()" title="Sign Out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+
+      <!-- Quick Metrics/Analytics Row -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+        <div style="background: rgba(243, 167, 18, 0.08); border: 1px solid rgba(243, 167, 18, 0.2); border-radius: 16px; padding: 12px; text-align: center;">
+          <span style="font-size: 10px; color: var(--text-gray); text-transform: uppercase;">Active Cargo</span>
+          <h3 id="mobileMetricTotal" style="font-size: 22px; font-weight: 800; color: #fff; margin-top: 4px;">0</h3>
+        </div>
+        <div style="background: rgba(46, 196, 182, 0.08); border: 1px solid rgba(46, 196, 182, 0.2); border-radius: 16px; padding: 12px; text-align: center;">
+          <span style="font-size: 10px; color: var(--text-gray); text-transform: uppercase;">Delivered</span>
+          <h3 id="mobileMetricDelivered" style="font-size: 22px; font-weight: 800; color: var(--success-teal); margin-top: 4px;">0</h3>
+        </div>
+      </div>
+
+      <!-- Tab Buttons inside Mobile Admin Panel -->
+      <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+        <button id="tabMobileList" onclick="switchMobileAdminTab('list')" style="flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; background: var(--accent-color); color: var(--primary-color);">📦 Shipments</button>
+        <button id="tabMobileCreate" onclick="switchMobileAdminTab('create')" style="flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; background: rgba(255,255,255,0.05); color: #fff;">➕ Add New</button>
+      </div>
+
+      <!-- Tab Content 1: Shipments List -->
+      <div id="mobileAdminListContent">
+        <div id="mobileAdminShipmentsList" style="display: flex; flex-direction: column; gap: 12px; max-height: 55vh; overflow-y: auto;">
+          <!-- Live updates injected dynamically -->
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Create Shipment Form -->
+      <div id="mobileAdminCreateContent" style="display: none; max-height: 55vh; overflow-y: auto; padding-right: 4px;">
+        <form id="mobileCreateForm" onsubmit="handleMobileCreateShipment(event)" style="display: flex; flex-direction: column; gap: 14px; background: var(--bg-panel); border: 1px solid var(--border-color); padding: 18px; border-radius: 18px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Client Name *</label>
+            <input type="text" id="mCreateName" required style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Client Email *</label>
+            <input type="email" id="mCreateEmail" required style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Client Phone</label>
+            <input type="text" id="mCreatePhone" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Package Details *</label>
+            <input type="text" id="mCreateCargo" required style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Weight (kg)</label>
+              <input type="number" id="mCreateWeight" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Dimensions</label>
+              <input type="text" id="mCreateDimensions" placeholder="L x W x H" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Origin *</label>
+            <input type="text" id="mCreateOrigin" required style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Destination *</label>
+            <input type="text" id="mCreateDest" required style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Pickup Date *</label>
+              <input type="date" id="mCreateDate" required style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Initial Status *</label>
+              <select id="mCreateStatus" required style="background: rgba(12, 35, 64, 0.9); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px; height: 38px;">
+                <option value="Order Received" selected>Order Received</option>
+                <option value="Order Placed">Order Placed</option>
+                <option value="In Transit">In Transit</option>
+                <option value="Customs Clearance">Customs Clearance</option>
+                <option value="Out for Delivery">Out for Delivery</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Initial Location *</label>
+            <input type="text" id="mCreateLocation" required value="Origin Warehouse" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <button type="submit" class="track-btn" style="margin-top: 10px; width: 100%;">
+            <i class="fa-solid fa-circle-plus"></i> Create Consignment
+          </button>
+        </form>
+      </div>
+
+      <!-- Update Form Drawer inside Mobile Admin Panel -->
+      <div id="mobileUpdateDrawer" style="display: none; background: rgba(12, 35, 64, 0.95); border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <h4 style="color: var(--accent-color); font-weight: bold; font-size: 15px; margin-bottom: 12px;">✏️ Update Consignment <span id="mUpdateId" style="color: #fff; font-family: monospace;"></span></h4>
+        <form onsubmit="handleMobileUpdateShipment(event)" style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Status *</label>
+            <select id="mUpdateStatus" required style="background: rgba(12, 35, 64, 0.9); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px; height: 38px;">
+              <option value="Order Received">Order Received</option>
+              <option value="Order Placed">Order Placed</option>
+              <option value="In Transit">In Transit</option>
+              <option value="Customs Clearance">Customs Clearance</option>
+              <option value="Out for Delivery">Out for Delivery</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Location *</label>
+            <input type="text" id="mUpdateLocation" required style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; color: var(--accent-color); font-weight: 700; text-align: left;">Comment (Optional)</label>
+            <input type="text" id="mUpdateComment" placeholder="Leave empty for auto summary" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13.5px;">
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="submit" class="track-btn" style="flex: 1; padding: 10px 0;"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <button type="button" class="track-btn" onclick="closeMobileUpdateDrawer()" style="flex: 1; background: rgba(230, 57, 70, 0.1); border-color: rgba(230, 57, 70, 0.3); color: var(--danger-red); padding: 10px 0;">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-screen="screen-track">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span>Track</span>
+    </div>
+    <div class="nav-item" data-screen="screen-shipments">
+      <i class="fa-solid fa-boxes-stacked"></i>
+      <span>My Cargo</span>
+    </div>
+    <div class="nav-item" data-screen="screen-help">
+      <i class="fa-solid fa-headset"></i>
+      <span>Support</span>
+    </div>
+  </nav>
+
+  <!-- Barcode Scanner Simulated View -->
+  <div class="scanner-overlay" id="scannerOverlay">
+    <div class="scanner-header">
+      <h3 style="color:#fff;">Align Code Inside Frame</h3>
+      <button class="scanner-close" id="closeScannerBtn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="scanner-body">
+      <video class="scanner-video" id="scannerVideo" autoplay playsinline></video>
+      <div class="scanner-frame" id="scannerFrame">
+        <div class="scanner-laser"></div>
+      </div>
+    </div>
+    <div class="scanner-tip" id="scannerTip">
+      Place shipment barcode inside the square to scan.
+    </div>
+  </div>
+
+  <!-- Android Chrome Install Sheet -->
+  <div class="install-sheet" id="androidInstallSheet">
+    <div class="install-sheet-header">
+      <div class="install-sheet-logo">
+        <img src="assets/images/logo.svg" alt="App Logo">
+      </div>
+      <div class="install-sheet-info">
+        <h3>Install Zivah Track</h3>
+        <p>Zivah Shipping Logistics</p>
+      </div>
+    </div>
+    <div class="install-sheet-body">
+      Add Zivah Cargo Track to your Home Screen for instant status alerts and fast offline shipment monitoring.
+    </div>
+    <div class="install-sheet-buttons">
+      <button class="btn-sheet-secondary" id="cancelAndroidInstall">Later</button>
+      <button class="btn-sheet-primary" id="confirmAndroidInstall">Install App</button>
+    </div>
+  </div>
+
+  <!-- iOS Safari Install Sheet -->
+  <div class="install-sheet" id="iosInstallSheet">
+    <div class="install-sheet-header">
+      <div class="install-sheet-logo">
+        <img src="assets/images/logo.svg" alt="App Logo">
+      </div>
+      <div class="install-sheet-info">
+        <h3>Install on iPhone</h3>
+        <p>Zivah Shipping Logistics</p>
+      </div>
+    </div>
+    <div class="install-sheet-body">
+      Follow these quick steps to add this tracking utility directly to your home screen:
+    </div>
+    <div class="install-sheet-steps">
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <span>Tap the <strong>Share</strong> button <i class="fa-solid fa-square-share-nodes" style="color:var(--accent-color);"></i> in the Safari toolbar.</span>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <span>Scroll down and tap <strong>Add to Home Screen</strong> <i class="fa-regular fa-square-plus" style="color:var(--accent-color);"></i>.</span>
+      </div>
+    </div>
+    <div class="install-sheet-buttons" style="grid-template-columns: 1fr;">
+      <button class="btn-sheet-primary" id="confirmIosInstall" style="width: 100%;">Got It</button>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="toast" id="appToast">
+    <i class="fa-solid fa-circle-info"></i>
+    <span id="toastMsg">-</span>
+  </div>
+
+  <!-- Client-side Logic Script -->
+  <script>
+    // Global State
+    let activeTrackingId = null;
+    let deferredPrompt = null;
+    let localDataTimer = null;
+
+    // Register Service Worker for PWA compliance
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+
+    // Connection Monitor
+    function updateConnectionStatus() {
+      const badge = document.getElementById('connBadge');
+      if (navigator.onLine) {
+        badge.innerHTML = '<span></span>Online';
+        badge.classList.remove('offline');
+      } else {
+        badge.innerHTML = '<span></span>Offline';
+        badge.classList.add('offline');
+        showToast('App is running in offline mode.');
+      }
+    }
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+    updateConnectionStatus();
+
+    // Toast Notification helper
+    function showToast(message) {
+      const toast = document.getElementById('appToast');
+      document.getElementById('toastMsg').innerText = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+      if (navigator.vibrate) navigator.vibrate(50); // Small feedback click
+    }
+
+    // Tab Navigation logic
+    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+    const screens = document.querySelectorAll('.app-screen');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const targetScreen = item.getAttribute('data-screen');
+        
+        navItems.forEach(nav => nav.classList.remove('active'));
+        screens.forEach(screen => screen.classList.remove('active'));
+        
+        item.classList.add('active');
+        const screenEl = document.getElementById(targetScreen);
+        screenEl.classList.add('active');
+        
+        if (targetScreen === 'screen-shipments') {
+          renderSavedShipments();
+        }
+      });
+    });
+
+    // Database Lookup Function
+    function getBookings() {
+      return JSON.parse(localStorage.getItem('zsl_bookings') || '[]');
+    }
+
+    function searchConsignment(id) {
+      if (!id) return;
+      id = id.toUpperCase().trim();
+      const bookings = getBookings();
+      const match = bookings.find(b => b.trackingId.toUpperCase() === id);
+      
+      if (match) {
+        // Save to active tracking trackingId
+        activeTrackingId = match.trackingId;
+        
+        // Save to Recent Searches list in localStorage
+        saveRecentSearch(match.trackingId, match.fullName, match.status);
+        
+        // Populate and display details
+        loadTrackingDetails(match);
+        
+        // Transition screen
+        transitionToDetails();
+      } else {
+        showToast(`Tracking ID "${id}" not found.`);
+      }
+    }
+
+    function saveRecentSearch(id, customer, status) {
+      let recents = JSON.parse(localStorage.getItem('zsl_recent_mobile_tracks') || '[]');
+      // Avoid duplicates
+      recents = recents.filter(r => r.id !== id);
+      recents.unshift({ id, customer, status, timestamp: Date.now() });
+      // Keep top 5
+      if (recents.length > 5) recents.pop();
+      localStorage.setItem('zsl_recent_mobile_tracks', JSON.stringify(recents));
+      renderRecentSearches();
+    }
+
+    function renderRecentSearches() {
+      const recents = JSON.parse(localStorage.getItem('zsl_recent_mobile_tracks') || '[]');
+      const container = document.getElementById('recentsContainer');
+      const list = document.getElementById('recentsList');
+      
+      if (recents.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+      
+      list.innerHTML = '';
+      recents.forEach(item => {
+        // Get live status from DB if it exists, to keep recents status up to date
+        const bookings = getBookings();
+        const liveBooking = bookings.find(b => b.trackingId === item.id);
+        const currentStatus = liveBooking ? liveBooking.status : item.status;
+        
+        let badgeClass = 'badge-info';
+        if (currentStatus === 'In Transit') badgeClass = 'badge-warning';
+        else if (currentStatus === 'Out for Delivery') badgeClass = 'badge-warning';
+        else if (currentStatus === 'Delivered') badgeClass = 'badge-success';
+        else if (currentStatus === 'Cancelled') badgeClass = 'badge-danger';
+
+        const card = document.createElement('div');
+        card.className = 'recent-item-card';
+        card.onclick = () => searchConsignment(item.id);
+        card.innerHTML = `
+          <div class="recent-info">
+            <h4>${item.id}</h4>
+            <p>${item.customer}</p>
+          </div>
+          <span class="recent-status ${badgeClass}">${currentStatus}</span>
+        `;
+        list.appendChild(card);
+      });
+      container.style.display = 'block';
+    }
+
+    function clearRecents() {
+      localStorage.removeItem('zsl_recent_mobile_tracks');
+      renderRecentSearches();
+      showToast('Search logs cleared.');
+    }
+
+    // Populate Details View
+    function loadTrackingDetails(booking) {
+      // If passing ID, fetch booking first
+      if (typeof booking === 'string') {
+        const bookings = getBookings();
+        booking = bookings.find(b => b.trackingId === booking);
+        if (!booking) return; // DB entry deleted or not found
+      }
+
+      document.getElementById('detTrackingId').innerText = booking.trackingId;
+      document.getElementById('detBookedDate').innerText = new Date(booking.createdAt).toLocaleDateString();
+      document.getElementById('detShipper').innerText = booking.fullName;
+      document.getElementById('detCargo').innerText = booking.cargoType;
+      document.getElementById('detWeightDim').innerText = `${booking.weight} kg (${booking.dimensions})`;
+      document.getElementById('detDeliveryAddr').innerText = booking.deliveryAddress.split(',').slice(-2).join(',').trim(); // Show city/country
+      
+      const detCurrentLocation = document.getElementById('detCurrentLocation');
+      if (detCurrentLocation) {
+        detCurrentLocation.innerText = booking.currentLocation || 'Origin Warehouse';
+      }
+
+      // Status Badge
+      const statusBadge = document.getElementById('detStatusBadge');
+      statusBadge.innerText = booking.status;
+      statusBadge.className = 'status-badge';
+      if (booking.status === 'Order Placed' || booking.status === 'Order Received') statusBadge.classList.add('badge-info');
+      else if (booking.status === 'In Transit' || booking.status === 'Out for Delivery' || booking.status === 'Customs Clearance') statusBadge.classList.add('badge-warning');
+      else if (booking.status === 'Delivered') statusBadge.classList.add('badge-success');
+      else if (booking.status === 'Cancelled') statusBadge.classList.add('badge-danger');
+      else statusBadge.classList.add('badge-danger');
+
+      // Visual Route Nodes & Progress Width
+      const nodes = {
+        'placed': document.getElementById('node-placed'),
+        'transit': document.getElementById('node-transit'),
+        'delivery': document.getElementById('node-delivery'),
+        'delivered': document.getElementById('node-delivered')
+      };
+
+      // Reset nodes
+      Object.values(nodes).forEach(n => {
+        n.classList.remove('active', 'complete');
+      });
+
+      const progressBar = document.getElementById('detRouteProgress');
+      let progressWidth = '0%';
+
+      if (booking.status === 'Order Placed' || booking.status === 'Order Received') {
+        nodes.placed.classList.add('active');
+        progressWidth = '10%';
+      } else if (booking.status === 'In Transit' || booking.status === 'Customs Clearance') {
+        nodes.placed.classList.add('complete');
+        nodes.transit.classList.add('active');
+        progressWidth = '45%';
+      } else if (booking.status === 'Out for Delivery') {
+        nodes.placed.classList.add('complete');
+        nodes.transit.classList.add('complete');
+        nodes.delivery.classList.add('active');
+        progressWidth = '75%';
+      } else if (booking.status === 'Delivered') {
+        nodes.placed.classList.add('complete');
+        nodes.transit.classList.add('complete');
+        nodes.delivery.classList.add('complete');
+        nodes.delivered.classList.add('active');
+        progressWidth = '100%';
+      }
+      progressBar.style.width = progressWidth;
+
+      // Build Timeline Logs
+      const timeline = document.getElementById('detTimeline');
+      timeline.innerHTML = '';
+      
+      const sortedHistory = [...booking.statusHistory].reverse();
+      sortedHistory.forEach((log, index) => {
+        const isCurrent = index === 0;
+        const logDate = new Date(log.timestamp);
+        
+        const step = document.createElement('div');
+        step.className = `timeline-step ${isCurrent ? 'active' : 'completed'}`;
+        step.innerHTML = `
+          <div class="step-dot"></div>
+          <div class="step-content">
+            <div class="step-header">
+              <span class="step-title">${log.status}</span>
+              <span class="step-time">${logDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500;">
+              ${logDate.toLocaleDateString()}
+            </p>
+            <p class="step-comment">${log.comment}</p>
+          </div>
+        `;
+        timeline.appendChild(step);
+      });
+
+      // Generate Barcode
+      try {
+        JsBarcode("#detBarcode", booking.trackingId, {
+          format: "CODE128",
+          width: 2.2,
+          height: 50,
+          displayValue: true,
+          lineColor: "#0c2340",
+          fontSize: 14,
+          textMargin: 4
+        });
+      } catch (e) {
+        console.error('Barcode drawing error:', e);
+      }
+    }
+
+    // Screen Transitions
+    function transitionToDetails() {
+      document.getElementById('screen-track').classList.remove('active');
+      document.getElementById('screen-shipments').classList.remove('active');
+      document.getElementById('screen-details').classList.add('active');
+    }
+
+    document.getElementById('detailsBackBtn').addEventListener('click', () => {
+      document.getElementById('screen-details').classList.remove('active');
+      
+      // Return to whichever tab is highlighted
+      const activeTabScreen = document.querySelector('.bottom-nav .nav-item.active').getAttribute('data-screen');
+      document.getElementById(activeTabScreen).classList.add('active');
+      activeTrackingId = null;
+    });
+
+    // Handle Searches
+    const trackInput = document.getElementById('trackInput');
+    document.getElementById('trackSubmitBtn').addEventListener('click', () => {
+      searchConsignment(trackInput.value);
+    });
+    trackInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        searchConsignment(trackInput.value);
+      }
+    });
+
+    // Render Saved shipments tab
+    function renderSavedShipments() {
+      const listDiv = document.getElementById('savedShipmentsList');
+      const recents = JSON.parse(localStorage.getItem('zsl_recent_mobile_tracks') || '[]');
+      
+      if (recents.length === 0) {
+        listDiv.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-box-open"></i>
+            <h3>No Tracking Entries</h3>
+            <p>Your search history is empty. Try searching for a consignment ID on the main Track tab.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listDiv.innerHTML = '';
+      recents.forEach(item => {
+        // Fetch fresh details from main DB
+        const bookings = getBookings();
+        const liveMatch = bookings.find(b => b.trackingId === item.id);
+        if (!liveMatch) return; // database reset occurred
+        
+        let badgeClass = 'badge-info';
+        if (liveMatch.status === 'In Transit') badgeClass = 'badge-warning';
+        else if (liveMatch.status === 'Out for Delivery') badgeClass = 'badge-warning';
+        else if (liveMatch.status === 'Delivered') badgeClass = 'badge-success';
+        else if (liveMatch.status === 'Cancelled') badgeClass = 'badge-danger';
+
+        const card = document.createElement('div');
+        card.className = 'recent-item-card';
+        card.style.background = 'var(--bg-panel)';
+        card.style.padding = '18px';
+        card.onclick = () => searchConsignment(liveMatch.trackingId);
+        card.innerHTML = `
+          <div class="recent-info">
+            <h4 style="font-size:15px; color:var(--accent-color);">${liveMatch.trackingId}</h4>
+            <p style="font-size:12px; margin-top:2px;">${liveMatch.fullName}</p>
+            <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+              Route: ${liveMatch.pickupAddress.split(',').slice(-2, -1)[0]?.trim()} &rarr; ${liveMatch.deliveryAddress.split(',').slice(-2, -1)[0]?.trim()}
+            </p>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <span class="recent-status ${badgeClass}">${liveMatch.status}</span>
+            <span style="font-size:10px; color:var(--text-muted);">${new Date(liveMatch.createdAt).toLocaleDateString()}</span>
+          </div>
+        `;
+        listDiv.appendChild(card);
+      });
+    }
+
+    // --- REAL-TIME DATABASE SYNC WORKER ---
+    // Watches the localStorage database for updates and applies them live to the screen!
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'zsl_bookings') {
+        if (activeTrackingId) {
+          loadTrackingDetails(activeTrackingId);
+          showToast('Cargo status updated in real-time.');
+        }
+        renderRecentSearches();
+        renderSavedShipments();
+      }
+    });
+
+    // Simple fast poll check (handles updates in same tab context / iframe simulations)
+    let lastKnownDb = localStorage.getItem('zsl_bookings');
+    setInterval(() => {
+      const currentDb = localStorage.getItem('zsl_bookings');
+      if (currentDb !== lastKnownDb) {
+        lastKnownDb = currentDb;
+        if (activeTrackingId) {
+          loadTrackingDetails(activeTrackingId);
+          showToast('Real-time cargo update synced.');
+        }
+        renderRecentSearches();
+        renderSavedShipments();
+      }
+    }, 1500);
+
+    // Seed checking for initial URL params (e.g. scanning QR passes trackingId)
+    window.addEventListener('DOMContentLoaded', () => {
+      renderRecentSearches();
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlId = urlParams.get('trackingId');
+      if (urlId) {
+        trackInput.value = urlId;
+        searchConsignment(urlId);
+      }
+    });
+
+    // --- PWA INSTALLATION PROMPTS LOGIC ---
+    const androidSheet = document.getElementById('androidInstallSheet');
+    const iosSheet = document.getElementById('iosInstallSheet');
+
+    // Detect OS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    // A. Android / Chrome prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent browser default prompt
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      // Delay showing install prompt sheet for better UX
+      setTimeout(() => {
+        if (!isStandalone) {
+          androidSheet.classList.add('show');
+        }
+      }, 3000);
+    });
+
+    document.getElementById('confirmAndroidInstall').addEventListener('click', () => {
+      if (deferredPrompt) {
+        androidSheet.classList.remove('show');
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            showToast('Thank you for installing our app!');
+          }
+          deferredPrompt = null;
+        });
+      }
+    });
+
+    document.getElementById('cancelAndroidInstall').addEventListener('click', () => {
+      androidSheet.classList.remove('show');
+    });
+
+    // B. iOS Safari prompt
+    window.addEventListener('load', () => {
+      if (isIOS && !isStandalone) {
+        // Show iOS instructions sheet
+        setTimeout(() => {
+          iosSheet.classList.add('show');
+        }, 3000);
+      }
+    });
+
+    document.getElementById('confirmIosInstall').addEventListener('click', () => {
+      iosSheet.classList.remove('show');
+    });
+
+    // --- BARCODE/QR CODE SIMULATED SCANNER ---
+    const scannerOverlay = document.getElementById('scannerOverlay');
+    const startScanBtn = document.getElementById('startScanBtn');
+    const closeScannerBtn = document.getElementById('closeScannerBtn');
+    const scannerVideo = document.getElementById('scannerVideo');
+    let videoStream = null;
+
+    startScanBtn.addEventListener('click', async () => {
+      scannerOverlay.style.display = 'flex';
+      
+      // Attempt to access user camera
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          videoStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+          });
+          scannerVideo.srcObject = videoStream;
+          scannerVideo.style.display = 'block';
+        } else {
+          throw new Error('Camera APIs unavailable');
+        }
+      } catch (err) {
+        console.warn('Camera access unavailable, running scanner animation.', err);
+        scannerVideo.style.display = 'none';
+      }
+
+      // Simulate a quick barcode search automatically for demo purposes after 3 seconds
+      setTimeout(() => {
+        if (scannerOverlay.style.display === 'flex') {
+          // Input a valid mock tracking code
+          const bookings = getBookings();
+          const mockId = bookings.length > 0 ? bookings[0].trackingId : 'ZSL-K8J39A2B';
+          
+          trackInput.value = mockId;
+          stopScanner();
+          showToast('Barcode detected successfully.');
+          searchConsignment(mockId);
+        }
+      }, 3000);
+    });
+
+    function stopScanner() {
+      scannerOverlay.style.display = 'none';
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+      }
+      scannerVideo.srcObject = null;
+    }
+
+    closeScannerBtn.addEventListener('click', stopScanner);
+
+    // --- MOBILE ADMIN ROUTING & CRUD ---
+    function openMobileAdminLogin() {
+      if (sessionStorage.getItem('zsl_admin_logged_in') === 'true') {
+        switchToAdminDashboard();
+      } else {
+        hideAllScreens();
+        showBottomNav(false);
+        document.getElementById('screen-admin-login').classList.add('active');
+        document.getElementById('adminUsername').value = '';
+        document.getElementById('adminPassword').value = '';
+      }
+    }
+
+    function backToSupportScreen() {
+      hideAllScreens();
+      showBottomNav(true);
+      document.getElementById('screen-help').classList.add('active');
+      const helpTab = document.querySelector('.bottom-nav .nav-item[data-screen="screen-help"]');
+      if (helpTab) helpTab.classList.add('active');
+    }
+
+    function hideAllScreens() {
+      document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+    }
+
+    function showBottomNav(show = true) {
+      const nav = document.querySelector('.bottom-nav');
+      if (nav) nav.style.display = show ? 'flex' : 'none';
+    }
+
+    function submitMobileAdminLogin() {
+      const u = document.getElementById('adminUsername').value.trim();
+      const p = document.getElementById('adminPassword').value.trim();
+      
+      if (u === 'admin' && p === 'adminzsl') {
+        sessionStorage.setItem('zsl_admin_logged_in', 'true');
+        showToast('Authenticated successfully.');
+        switchToAdminDashboard();
+      } else {
+        showToast('Invalid credentials.');
+      }
+    }
+
+    function switchToAdminDashboard() {
+      hideAllScreens();
+      showBottomNav(false);
+      document.getElementById('screen-admin-dashboard').classList.add('active');
+      switchMobileAdminTab('list');
+      loadMobileAdminData();
+    }
+
+    function signOutMobileAdmin() {
+      sessionStorage.removeItem('zsl_admin_logged_in');
+      showToast('Logged out.');
+      backToSupportScreen();
+    }
+
+    function loadMobileAdminData() {
+      const bookings = getBookings();
+      document.getElementById('mobileMetricTotal').innerText = bookings.length;
+      
+      const deliveredCount = bookings.filter(b => b.status === 'Delivered').length;
+      document.getElementById('mobileMetricDelivered').innerText = deliveredCount;
+      
+      renderMobileAdminShipments();
+    }
+
+    function renderMobileAdminShipments() {
+      const bookings = getBookings();
+      const container = document.getElementById('mobileAdminShipmentsList');
+      container.innerHTML = '';
+      
+      if (bookings.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-gray); text-align:center; padding:20px 0; font-size:13px;">No consignments found in database.</p>';
+        return;
+      }
+      
+      const sorted = [...bookings].reverse();
+      
+      sorted.forEach(booking => {
+        const card = document.createElement('div');
+        card.style.background = 'rgba(255,255,255,0.02)';
+        card.style.border = '1px solid var(--border-color)';
+        card.style.borderRadius = '16px';
+        card.style.padding = '14px';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.gap = '8px';
+        card.style.marginTop = '8px';
+        
+        let badgeClass = 'badge-info';
+        if (booking.status === 'In Transit' || booking.status === 'Out for Delivery' || booking.status === 'Customs Clearance') badgeClass = 'badge-warning';
+        else if (booking.status === 'Delivered') badgeClass = 'badge-success';
+        else if (booking.status === 'Cancelled') badgeClass = 'badge-danger';
+        
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:monospace; font-weight:800; color:var(--accent-color); font-size:14px;">${booking.trackingId}</span>
+            <span class="status-badge ${badgeClass}" style="font-size:10px; padding:2px 8px; line-height:1.2;">${booking.status}</span>
+          </div>
+          <div style="font-size:12px; color:var(--text-white); text-align:left; line-height:1.4;">
+            <strong>Client:</strong> ${booking.fullName}<br>
+            <strong>Route:</strong> ${booking.pickupAddress.split(',')[0]} ➔ ${booking.deliveryAddress.split(',')[0]}<br>
+            <strong>Location:</strong> 📍 ${booking.currentLocation || 'Origin Warehouse'}
+          </div>
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <button onclick="openMobileUpdate('${booking.trackingId}')" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:#fff; border-radius:8px; padding:6px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i> Update</button>
+            <button onclick="handleMobileDeleteShipment('${booking.trackingId}')" style="flex:1; background:rgba(230,57,70,0.1); border:1px solid rgba(230,57,70,0.2); color:var(--danger-red); border-radius:8px; padding:6px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchMobileAdminTab(tab) {
+      const listBtn = document.getElementById('tabMobileList');
+      const createBtn = document.getElementById('tabMobileCreate');
+      const listContent = document.getElementById('mobileAdminListContent');
+      const createContent = document.getElementById('mobileAdminCreateContent');
+      
+      if (tab === 'list') {
+        listBtn.style.background = 'var(--accent-color)';
+        listBtn.style.color = 'var(--primary-color)';
+        createBtn.style.background = 'rgba(255,255,255,0.05)';
+        createBtn.style.color = '#fff';
+        
+        listContent.style.display = 'block';
+        createContent.style.display = 'none';
+        loadMobileAdminData();
+      } else {
+        createBtn.style.background = 'var(--accent-color)';
+        createBtn.style.color = 'var(--primary-color)';
+        listBtn.style.background = 'rgba(255,255,255,0.05)';
+        listBtn.style.color = '#fff';
+        
+        createContent.style.display = 'block';
+        listContent.style.display = 'none';
+        
+        document.getElementById('mobileCreateForm').reset();
+        document.getElementById('mCreateDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('mCreateLocation').value = 'Origin Warehouse';
+      }
+    }
+
+    function handleMobileCreateShipment(event) {
+      event.preventDefault();
+      
+      const fullName = document.getElementById('mCreateName').value.trim();
+      const email = document.getElementById('mCreateEmail').value.trim();
+      const phone = document.getElementById('mCreatePhone').value.trim() || 'N/A';
+      const cargoType = document.getElementById('mCreateCargo').value.trim();
+      const weight = document.getElementById('mCreateWeight').value ? parseFloat(document.getElementById('mCreateWeight').value) : 'N/A';
+      const dimensions = document.getElementById('mCreateDimensions').value.trim() || 'N/A';
+      const pickupAddress = document.getElementById('mCreateOrigin').value.trim();
+      const deliveryAddress = document.getElementById('mCreateDest').value.trim();
+      const pickupDate = document.getElementById('mCreateDate').value;
+      const status = document.getElementById('mCreateStatus').value;
+      const currentLocation = document.getElementById('mCreateLocation').value.trim() || 'Origin Warehouse';
+      
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const bookings = getBookings();
+      let isUnique = false;
+      let trackingId = '';
+      
+      while (!isUnique) {
+        let code = '';
+        for (let i = 0; i < 5; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        trackingId = 'ZIVAH-' + code;
+        isUnique = !bookings.some(b => b.trackingId === trackingId);
+      }
+      
+      const newBooking = {
+        trackingId: trackingId,
+        createdAt: new Date().toISOString(),
+        fullName: fullName,
+        email: email,
+        phone: phone,
+        cargoType: cargoType,
+        weight: weight,
+        dimensions: dimensions,
+        pickupAddress: pickupAddress,
+        deliveryAddress: deliveryAddress,
+        pickupDate: pickupDate,
+        status: status,
+        currentLocation: currentLocation,
+        statusHistory: [
+          {
+            status: status,
+            timestamp: new Date().toISOString(),
+            comment: `Shipment registered at ${currentLocation} via Mobile Control. Initial status: ${status}`
+          }
+        ]
+      };
+      
+      bookings.push(newBooking);
+      localStorage.setItem('zsl_bookings', JSON.stringify(bookings));
+      showToast(`Shipment ${trackingId} created.`);
+      
+      triggerMobileClientNotification(newBooking);
+      switchMobileAdminTab('list');
+    }
+
+    function triggerMobileClientNotification(booking) {
+      const originUrl = window.location.href.split('mobile-tracking.html')[0];
+      const trackingPageUrl = originUrl + 'tracking.html?trackingId=' + encodeURIComponent(booking.trackingId);
+      
+      const subjectText = `📦 ZSL Shipping Confirmation - tracking ID: ${booking.trackingId}`;
+      const messageText = `We are pleased to inform you that your shipment has been successfully registered.`;
+      
+      fetch(`https://formsubmit.co/ajax/${booking.email}`, {
+        method: "POST",
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            "_subject": subjectText,
+            "Greeting": `Dear ${booking.fullName},`,
+            "Message": messageText,
+            "Tracking ID": booking.trackingId,
+            "Current Status": booking.status,
+            "Current Location": booking.currentLocation || 'Origin Warehouse',
+            "_replyto": "zivahshippinglogistics2026@gmail.com",
+            "Track URL": trackingPageUrl,
+            "_honey": ""
+        })
+      })
+      .catch(err => console.error("Mobile notify error:", err));
+    }
+
+    function openMobileUpdate(trackingId) {
+      const bookings = getBookings();
+      const booking = bookings.find(b => b.trackingId === trackingId);
+      if (booking) {
+        document.getElementById('mUpdateId').innerText = booking.trackingId;
+        document.getElementById('mUpdateStatus').value = booking.status;
+        document.getElementById('mUpdateLocation').value = booking.currentLocation || booking.pickupAddress;
+        document.getElementById('mUpdateComment').value = '';
+        
+        document.getElementById('mobileUpdateDrawer').style.display = 'block';
+        document.getElementById('mobileUpdateDrawer').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function closeMobileUpdateDrawer() {
+      document.getElementById('mobileUpdateDrawer').style.display = 'none';
+    }
+
+    function handleMobileUpdateShipment(event) {
+      event.preventDefault();
+      
+      const trackingId = document.getElementById('mUpdateId').innerText;
+      const status = document.getElementById('mUpdateStatus').value;
+      const currentLocation = document.getElementById('mUpdateLocation').value.trim();
+      const comment = document.getElementById('mUpdateComment').value.trim() || `Consignment status updated to ${status} at ${currentLocation} via Mobile Control`;
+      
+      const bookings = getBookings();
+      const idx = bookings.findIndex(b => b.trackingId === trackingId);
+      
+      if (idx !== -1) {
+        bookings[idx].status = status;
+        bookings[idx].currentLocation = currentLocation;
+        bookings[idx].statusHistory.push({
+          status: status,
+          timestamp: new Date().toISOString(),
+          comment: `${comment} (Location: ${currentLocation})`
+        });
+        
+        localStorage.setItem('zsl_bookings', JSON.stringify(bookings));
+        showToast(`Shipment ${trackingId} updated.`);
+        closeMobileUpdateDrawer();
+        loadMobileAdminData();
+      }
+    }
+
+    function handleMobileDeleteShipment(trackingId) {
+      if (confirm(`⚠️ Are you sure you want to PERMANENTLY delete consignment ${trackingId} from the database?`)) {
+        const bookings = getBookings();
+        const filtered = bookings.filter(b => b.trackingId !== trackingId);
+        localStorage.setItem('zsl_bookings', JSON.stringify(filtered));
+        showToast(`Shipment ${trackingId} deleted.`);
+        loadMobileAdminData();
+      }
+    }
+  </script>
+</body>
+</html>
+
+
